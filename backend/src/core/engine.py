@@ -16,7 +16,11 @@ from .policy import (
 from .safe_window import find_safe_window
 
 
-def _time(value: Any) -> datetime:
+def _forecast_time(reading: Mapping[str, Any] | datetime | str) -> datetime:
+    """Extract Open-Meteo's ``time`` field from a forecast reading."""
+    value: Any = reading
+    if isinstance(value, Mapping):
+        value = value.get("time")
     if isinstance(value, datetime):
         return value
     if not isinstance(value, str):
@@ -25,10 +29,11 @@ def _time(value: Any) -> datetime:
 
 
 def _aqi(reading: Mapping[str, Any]) -> float:
-    for key in ("usAqi", "us_aqi", "aqi"):
+    """Read Open-Meteo's ``us_aqi`` field; accept normalized compatibility input."""
+    for key in ("us_aqi", "usAqi"):
         if key in reading:
             return float(reading[key])
-    raise ValueError("forecast readings require usAqi")
+    raise ValueError("forecast readings require us_aqi")
 
 
 def _minutes(slot: Mapping[str, Any]) -> int:
@@ -49,7 +54,7 @@ def decide(
     """Evaluate timetable activities against an hourly US-AQI forecast."""
     policy = policy or {}
     slots = timetable.get("slots", []) if isinstance(timetable, Mapping) else timetable
-    readings = sorted(hourlyForecast, key=_time)
+    readings = sorted(hourlyForecast, key=_forecast_time)
     verdicts = []
     safe_windows = []
     max_tier = "GREEN"
@@ -60,7 +65,11 @@ def decide(
         slot_readings = [
             reading
             for reading in readings
-            if str(slot["start"]) <= _time(reading).strftime("%H:%M") < str(slot["end"])
+            if (
+                str(slot["start"])
+                <= _forecast_time(reading).strftime("%H:%M")
+                < str(slot["end"])
+            )
         ]
         measured_aqi = max((_aqi(reading) for reading in slot_readings), default=None)
         measured_tier = tier_for_aqi(measured_aqi, policy) if measured_aqi is not None else "GREEN"

@@ -1,0 +1,1 @@
+"""Forecast ingestion Lambda package."""

@@ -1,0 +1,150 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Saans P0 forecast ingestion and single-table storage skeleton
+
+Parameters:
+  TableName:
+    Type: String
+    Default: saans-main
+  FrontendOrigin:
+    Type: String
+    Description: HTTPS CloudFront origin for the deployed frontend.
+    AllowedPattern: '^https://[A-Za-z0-9.-]+$'
+    ConstraintDescription: Must be an HTTPS origin such as https://d123.cloudfront.net.
+
+Rules:
+  MumbaiRegionOnly:
+    Assertions:
+      - Assert: !Equals
+          - !Ref AWS::Region
+          - ap-south-1
+        AssertDescription: Saans must be deployed in ap-south-1.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 256
+
+Resources:
+  SaansTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: src.ingest.handler.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref SaansTable
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref SaansTable
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: backend.src.api.handler.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref SaansTable
+          CORS_ALLOWED_ORIGIN: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SaansTable
+      Events:
+        ListSchools:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SaansHttpApi
+            Path: /schools
+            Method: GET
+        GetBrief:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SaansHttpApi
+            Path: /schools/{id}/brief
+            Method: GET
+        GetForecast:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SaansHttpApi
+            Path: /schools/{id}/forecast
+            Method: GET
+        Simulate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref SaansHttpApi
+            Path: /schools/{id}/simulate
+            Method: POST
+
+  SaansHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref FrontendOrigin
+          - http://localhost:5173
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+
+  IngestScheduleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeIngestFunction
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !GetAtt IngestFunction.Arn
+
+  HourlyIngestSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      ScheduleExpression: rate(1 hour)
+      Target:
+        Arn: !GetAtt IngestFunction.Arn
+        RoleArn: !GetAtt IngestScheduleRole.Arn
+
+Outputs:
+  TableName:
+    Value: !Ref SaansTable
+  IngestFunctionArn:
+    Value: !GetAtt IngestFunction.Arn
+  ApiUrl:
+    Description: API base URL for VITE_API_BASE.
+    Value: !Sub https://${SaansHttpApi}.execute-api.${AWS::Region}.amazonaws.com

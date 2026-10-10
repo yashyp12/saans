@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f8f6f1;
+  --panel: #fffdf9;
+  --panel-strong: #f0eee9;
+  --ink: #17212b;
+  --muted: #5e6a72;
+  --border: rgba(23, 33, 43, 0.12);
+  --green: #2e9e6b;
+  --amber: #e0a100;
+  --orange: #e8710a;
+  --red: #d93636;
+  --maroon: #7a1f3d;
+  --shadow: rgba(15, 23, 42, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(180deg, #f7f5f0 0%, #f1efe8 100%);
+  color: var(--ink);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.card-surface {
+  background: rgba(255, 253, 249, 0.88);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 22px var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.verdict-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.verdict-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+}
+
+.axis-label {
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+  }
+}

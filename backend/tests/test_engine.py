@@ -21,6 +21,13 @@ def forecast(aqi, hours=("11:00",)):
     return [{"time": f"2026-10-09T{hour}:00", "usAqi": aqi} for hour in hours]
 
 
+def orange_with_safe_window():
+    return [
+        {"time": "2026-10-09T11:00:00", "usAqi": 180},
+        {"time": "2026-10-09T16:00:00", "usAqi": 100},
+    ]
+
+
 def result(aqi, **kwargs):
     return decide([slot(**kwargs)], forecast(aqi), {}, NOW)["verdicts"][0]
 
@@ -29,7 +36,7 @@ def test_all_four_verdicts():
     assert result(100)["verdict"] == "GO"
     assert result(100, grades=["Nursery"])["verdict"] == "MODIFY"
     assert (
-        decide([slot()], forecast(180, ("11:00", "16:00")), {}, NOW)["verdicts"][0]["verdict"]
+        decide([slot()], orange_with_safe_window(), {}, NOW)["verdicts"][0]["verdict"]
         == "MOVE"
     )
     assert result(220)["verdict"] == "CANCEL"
@@ -54,8 +61,7 @@ def test_nursery_to_grade_five_are_evaluated_one_tier_worse():
 
 
 def test_safe_window_is_recommended_for_orange_activity():
-    readings = forecast(180, ("11:00", "16:00"))
-    decision = decide([slot()], readings, {}, NOW)
+    decision = decide([slot()], orange_with_safe_window(), {}, NOW)
     assert decision["verdicts"][0]["verdict"] == "MOVE"
     assert decision["safeWindows"] == [{"slotId": "pt", "from": "16:00", "to": "16:45"}]
 
@@ -69,6 +75,18 @@ def test_orange_activity_is_cancelled_without_safe_window():
 def test_slot_aqi_is_maximum_reading_in_slot():
     readings = forecast(100, ("11:00",)) + forecast(201, ("11:30",))
     assert decide([slot()], readings, {}, NOW)["verdicts"][0]["aqi"] == 201
+
+
+def test_open_meteo_aqi_field_is_used_without_implicit_renaming():
+    readings = [
+        {
+            "time": "2026-10-09T11:00:00",
+            "us_aqi": 151,
+            "pm2_5": 80.0,
+            "pm10": 120.0,
+        }
+    ]
+    assert decide([slot()], readings, {}, NOW)["verdicts"][0]["aqi"] == 151
 
 
 def test_indoor_slot_is_not_evaluated_by_outdoor_rules():

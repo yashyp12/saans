@@ -18,10 +18,11 @@ def _forecast_time(reading: Mapping[str, Any]) -> datetime:
 
 
 def _aqi(reading: Mapping[str, Any]) -> float:
-    for key in ("usAqi", "us_aqi", "aqi"):
+    """Read Open-Meteo's ``us_aqi`` field; accept normalized compatibility input."""
+    for key in ("us_aqi", "usAqi"):
         if key in reading:
             return float(reading[key])
-    raise ValueError("forecast readings require usAqi")
+    raise ValueError("forecast readings require us_aqi")
 
 
 def find_safe_window(

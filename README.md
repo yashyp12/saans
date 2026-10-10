@@ -183,10 +183,53 @@ pytest
 
 ### Deploy the backend
 
+The deployment requires an operator-provided HTTPS CloudFront origin and a
+schools JSON file containing the exact school coordinates and time zones. Do
+not commit either file if it contains private configuration or credentials.
+
 ```bash
-sam build
-sam deploy --guided        # first deploy; later runs reuse samconfig.toml
-python backend/scripts/seed.py
+sam validate --lint --template-file template.yaml --region ap-south-1
+sam build --template-file template.yaml --region ap-south-1
+sam deploy --guided --template-file template.yaml --region ap-south-1 \
+  --parameter-overrides FrontendOrigin=https://d123example.cloudfront.net
+# Replace the example origin with the actual deployed CloudFront HTTPS origin.
+# On later deployments, reuse the generated samconfig.toml and keep the same
+# FrontendOrigin parameter value.
+```
+
+After deployment, initialize school metadata and timetables. The JSON input
+must provide `id`, `name`, `city`, `lat`, `lon`, and `tz` for each school; the
+script uses the plan's default timetable unless `slots` are supplied.
+
+```bash
+python backend/scripts/seed.py \
+  --table-name saans-main \
+  --schools-file path/to/schools.json
+```
+
+Once seed records exist, invoke ingestion so the API has `AQ#...` forecast
+readings. The handler resolves seeded schools from DynamoDB when the event has
+no explicit school list.
+
+```bash
+aws lambda invoke \
+  --region ap-south-1 \
+  --function-name "$(aws cloudformation describe-stacks \
+    --region ap-south-1 \
+    --stack-name <stack-name> \
+    --query "Stacks[0].Outputs[?OutputKey=='IngestFunctionArn'].OutputValue" \
+    --output text)" \
+  --payload '{}' \
+  /tmp/saans-ingest-response.json
+```
+
+Use the deployed `ApiUrl` stack output as the frontend API base:
+
+```bash
+export VITE_API_BASE="<ApiUrl output>"
+cd frontend
+npm install
+npm run dev
 ```
 
 ### Run the frontend locally
@@ -194,7 +237,7 @@ python backend/scripts/seed.py
 ```bash
 cd frontend
 npm install
-echo "VITE_API_BASE=<your-api-url>" > .env.local
+echo "VITE_API_BASE=<ApiUrl output>" > .env.local
 npm run dev
 ```
 
