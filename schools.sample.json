@@ -1,0 +1,26 @@
+[
+  {
+    "id": "delhi",
+    "name": "Demo School Delhi",
+    "city": "Delhi",
+    "lat": 28.6139,
+    "lon": 77.209,
+    "tz": "Asia/Kolkata"
+  },
+  {
+    "id": "lucknow",
+    "name": "Demo School Lucknow",
+    "city": "Lucknow",
+    "lat": 26.8467,
+    "lon": 80.9462,
+    "tz": "Asia/Kolkata"
+  },
+  {
+    "id": "bengaluru",
+    "name": "Demo School Bengaluru",
+    "city": "Bengaluru",
+    "lat": 12.9716,
+    "lon": 77.5946,
+    "tz": "Asia/Kolkata"
+  }
+]

@@ -15,6 +15,14 @@ const apiBase = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
 export const hasLiveApi = apiBase.length > 0
 
+// Local fixtures are useful while developing the briefing UI, but a production
+// build must never silently present them as live school data.
+export const isDemoMode = import.meta.env.DEV && !hasLiveApi
+export const apiConfigurationError =
+  !hasLiveApi && !isDemoMode
+    ? 'VITE_API_BASE is not configured for this production build.'
+    : null
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBase}${path}`, {
     ...init,
