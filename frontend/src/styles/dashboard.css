@@ -332,7 +332,10 @@ input[type="range"]:focus-visible {
   border-radius: 12px;
   color: var(--ink-soft, #49645b);
   background: #fafbf7;
-  font: 700 .82rem/1.25 inherit;
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 1.25;
   cursor: pointer;
   transition: border-color .18s, background .18s, color .18s, transform .18s;
 }
