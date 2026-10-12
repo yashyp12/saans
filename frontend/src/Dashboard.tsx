@@ -293,7 +293,7 @@ function App() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="legend">{(['GREEN', 'AMBER', 'ORANGE', 'RED', 'MAROON'] as Tier[]).map((item) => <span key={item}><i style={{ background: tierStyles[item].color }} />{item}</span>)}</div>
+                <div className="legend" aria-label="AQI tier legend">{(['GREEN', 'AMBER', 'ORANGE', 'RED', 'MAROON'] as Tier[]).map((item) => <span className="legend-item" key={item}><i aria-hidden="true" style={{ background: tierStyles[item].color }} /><span>{item}</span></span>)}</div>
               </figure>
             )}
           </article>
@@ -313,11 +313,31 @@ function App() {
           <article className="workspace-card simulator-card">
             <div className="workspace-heading"><div><p className="eyebrow">What if?</p><h2>Bad-air simulator</h2></div><span className="workspace-icon">↗</span></div>
             <p className="workspace-copy">Explore a scenario without changing school data or sending a notification.</p>
-            <div className="scenario-list">
-              {(['normal', 'stubble', 'severe'] as Scenario[]).map((item) => <button key={item} type="button" className={scenario === item && !aqiOverride ? 'scenario active' : 'scenario'} onClick={() => { setScenario(item); setAqiOverride(null); setSimulationInput({ scenario: item }) }}><span className="scenario-mark">{item === 'normal' ? '○' : item === 'stubble' ? '◒' : '●'}</span>{item === 'stubble' ? 'Stubble season' : item[0].toUpperCase() + item.slice(1)}</button>)}
+            <fieldset className="scenario-fieldset">
+              <legend>Choose a scenario</legend>
+              <div className="scenario-list">
+                {(['normal', 'stubble', 'severe'] as Scenario[]).map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    aria-pressed={scenario === item && !aqiOverride}
+                    className={scenario === item && !aqiOverride ? 'scenario active' : 'scenario'}
+                    onClick={() => { setScenario(item); setAqiOverride(null); setSimulationInput({ scenario: item }) }}
+                  >
+                    <span className="scenario-mark" aria-hidden="true">{item === 'normal' ? '○' : item === 'stubble' ? '◒' : '●'}</span>
+                    <span>{item === 'stubble' ? 'Stubble season' : item[0].toUpperCase() + item.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <div className="range-control">
+              <label className="range-label" htmlFor="aqi-override">
+                <span>AQI override</span>
+                <strong>{aqiOverride === null ? 'Off' : aqiOverride}</strong>
+              </label>
+              <input id="aqi-override" type="range" min="60" max="340" value={aqiOverride ?? 180} aria-valuetext={aqiOverride === null ? 'Override off; slider reference 180' : `${aqiOverride} AQI`} onChange={(event) => { const value = Number(event.target.value); setAqiOverride(value); setSimulationInput({ aqiOverride: value }) }} />
+              <div className="range-scale"><span>60 · Lower</span><span>340 · Severe</span></div>
             </div>
-            <label className="range-label" htmlFor="aqi-override"><span>AQI override</span><strong>{aqiOverride ?? 'Off'}</strong></label>
-            <input id="aqi-override" type="range" min="60" max="340" value={aqiOverride ?? 180} onChange={(event) => { const value = Number(event.target.value); setAqiOverride(value); setSimulationInput({ aqiOverride: value }) }} />
             <div className="simulator-actions"><button type="button" className="button button-dark" onClick={runSimulation} disabled={simulationQuery.isFetching}>{simulationQuery.isFetching ? 'Calculating…' : 'Run simulation'}</button>{simulationQuery.isError && <span className="inline-error">{simulationQuery.error.message}</span>}</div>
             <p className="micro-note">{hasLiveApi ? 'The backend evaluates this scenario without changing school data.' : 'This scenario uses the labelled local sample workspace.'} Results are always labelled simulated.</p>
           </article>
@@ -329,7 +349,7 @@ function App() {
                 <p className="workspace-copy">Edit this decision-based notice template, then copy it for your school’s approved communication channel. Nothing is emailed or sent from Saans.</p>
                 <label className="sr-only" htmlFor="notice">School notice</label>
                 <textarea id="notice" value={activeNotice} onChange={(event) => setNotice(event.target.value)} className="notice-editor" />
-                <div className="composer-footer"><span>Draft text only · sending is not connected</span><button type="button" className="button button-outline" onClick={copyNotice}>{copyStatus === 'copied' ? 'Copied ✓' : copyStatus === 'failed' ? 'Copy failed' : 'Copy notice'}</button></div>
+                <div className="composer-footer"><span>Draft text only · sending is not connected</span><button type="button" className="button button-outline" onClick={copyNotice} aria-live="polite">{copyStatus === 'copied' ? 'Copied ✓' : copyStatus === 'failed' ? 'Copy failed' : 'Copy notice'}</button></div>
                 {subscribers.length === 0 && <p className="empty-note">No subscribers in this demo workspace.</p>}
               </>
             )}

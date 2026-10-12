@@ -15,12 +15,12 @@ const apiBase = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
 export const hasLiveApi = apiBase.length > 0
 
-// Local fixtures are useful while developing the briefing UI, but a production
-// build must never silently present them as live school data.
-export const isDemoMode = import.meta.env.DEV && !hasLiveApi
+// Preview fixtures are strictly opt-in. Never show sample air-quality values by
+// default when the live API is missing or misconfigured.
+export const isDemoMode = !hasLiveApi && import.meta.env.VITE_ENABLE_PREVIEW === 'true'
 export const apiConfigurationError =
   !hasLiveApi && !isDemoMode
-    ? 'VITE_API_BASE is not configured for this production build.'
+    ? 'Live API is not configured. Set VITE_API_BASE for live data, or explicitly enable VITE_ENABLE_PREVIEW=true for a labelled local preview.'
     : null
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
