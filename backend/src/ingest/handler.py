@@ -10,7 +10,7 @@ from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from backend.src.data_access import DataUnavailableError, DynamoDataStore
+from src.data_access import DataUnavailableError, DynamoDataStore
 
 OPEN_METEO_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
 
