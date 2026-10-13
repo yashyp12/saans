@@ -7,9 +7,13 @@ implementation without AWS credentials.
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from typing import Any, Iterable, Mapping, Protocol
+
+
+logger = logging.getLogger(__name__)
 
 
 class DataUnavailableError(RuntimeError):
@@ -122,6 +126,7 @@ class DynamoDataStore:
                     batch.put_item(Item=dict(reading))
                     count += 1
         except Exception as exc:
+            logger.exception("DynamoDB reading write failed")
             raise DataUnavailableError("DynamoDB reading write failed") from exc
         return count
 
