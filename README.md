@@ -16,7 +16,7 @@ Turns an hourly AQI forecast and a school timetable into clear, per-activity act
 </div>
 
 <p align="center">
-  <img src="docs/assets/Saans Clean Air Logo.png" alt="Saans school air-quality decision-support dashboard illustration" width="100%" />
+  <img src="docs/assets/SAANS-LOGO.png" alt="Saans school air-quality decision-support dashboard illustration" width="100%" />
 </p>
 
 <p align="center"><sub>Illustrative product preview, not a live screenshot. Live-data and notification availability depends on the current deployment.</sub></p>
