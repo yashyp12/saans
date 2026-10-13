@@ -354,6 +354,16 @@ input[type="range"]:focus-visible {
 .micro-note { margin: 13px 0 0; color: #718077; font-size: .75rem; line-height: 1.5; }
 .circular-card { display: flex; flex-direction: column; }
 .status-pill { flex: none; padding: 6px 10px; border: 1px solid #d8e7da; border-radius: 999px; color: #426e50; background: #f0f7ef; font-size: .7rem; font-weight: 800; }
+.simulation-notice {
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border: 1px solid #ead3a7;
+  border-radius: 11px;
+  color: #774b10;
+  background: #fff7e6;
+  font-size: .82rem;
+  line-height: 1.5;
+}
 .notice-editor {
   display: block;
   width: 100%;
