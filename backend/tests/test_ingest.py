@@ -45,6 +45,20 @@ def test_map_readings_preserves_open_meteo_fields_in_reading_model():
     ]
 
 
+def test_map_readings_uses_decimal_numbers_for_dynamodb():
+    readings = ingest.map_readings("delhi", open_meteo_response())
+    assert isinstance(readings[0]["pm25"], Decimal)
+    assert isinstance(readings[0]["pm10"], Decimal)
+    assert isinstance(readings[0]["usAqi"], Decimal)
+
+
+def test_map_readings_rejects_non_finite_numeric_values():
+    response = open_meteo_response()
+    response["hourly"]["us_aqi"][0] = float("nan")
+    with pytest.raises(ingest.IngestionError, match="non-finite"):
+        ingest.map_readings("delhi", response)
+
+
 @pytest.mark.parametrize(
     "response",
     [
@@ -60,20 +74,6 @@ def test_map_readings_preserves_open_meteo_fields_in_reading_model():
         },
     ],
 )
-def test_map_readings_uses_decimal_numbers_for_dynamodb():
-    readings = ingest.map_readings("delhi", open_meteo_response())
-    assert isinstance(readings[0]["pm25"], Decimal)
-    assert isinstance(readings[0]["pm10"], Decimal)
-    assert isinstance(readings[0]["usAqi"], Decimal)
-
-
-def test_map_readings_rejects_non_finite_numeric_values():
-    response = open_meteo_response()
-    response["hourly"]["us_aqi"][0] = float("nan")
-    with pytest.raises(ingest.IngestionError, match="non-finite"):
-        ingest.map_readings("delhi", response)
-
-
 def test_map_readings_rejects_missing_or_invalid_hourly_data(response):
     with pytest.raises(ingest.IngestionError):
         ingest.map_readings("delhi", response)
