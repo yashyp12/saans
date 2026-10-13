@@ -62,15 +62,25 @@ def decide(
     minutes_exposed = 0
 
     for slot in slots:
-        slot_readings = [
-            reading
-            for reading in readings
+        slot_start = datetime.strptime(str(slot["start"]), "%H:%M")
+        slot_end = datetime.strptime(str(slot["end"]), "%H:%M")
+        slot_start_minute = slot_start.hour * 60 + slot_start.minute
+        slot_end_minute = slot_end.hour * 60 + slot_end.minute
+
+        # Open-Meteo timestamps label the start of an hourly forecast bucket.
+        # Include a bucket if its [hour, hour + 60 min) interval overlaps the
+        # activity's [start, end) interval. This handles slots such as 14:30-15:00.
+        slot_readings = []
+        for reading in readings:
+            timestamp = _forecast_time(reading)
+            forecast_start_minute = timestamp.hour * 60 + timestamp.minute
+            forecast_end_minute = forecast_start_minute + 60
             if (
-                str(slot["start"])
-                <= _forecast_time(reading).strftime("%H:%M")
-                < str(slot["end"])
-            )
-        ]
+                forecast_start_minute < slot_end_minute
+                and forecast_end_minute > slot_start_minute
+            ):
+                slot_readings.append(reading)
+
         measured_aqi = max((_aqi(reading) for reading in slot_readings), default=None)
         measured_tier = tier_for_aqi(measured_aqi, policy) if measured_aqi is not None else "GREEN"
         evaluated_tier = (
