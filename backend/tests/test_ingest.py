@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from json import JSONDecodeError
 
 import pytest
@@ -28,17 +29,17 @@ def test_map_readings_preserves_open_meteo_fields_in_reading_model():
         {
             "PK": "SCHOOL#delhi",
             "SK": "AQ#2026-10-10T00:00",
-            "pm25": 12.5,
-            "pm10": 20.0,
-            "usAqi": 42.0,
+            "pm25": Decimal("12.5"),
+            "pm10": Decimal("20.0"),
+            "usAqi": Decimal("42.0"),
             "ttl": 1792195200,
         },
         {
             "PK": "SCHOOL#delhi",
             "SK": "AQ#2026-10-10T01:00",
-            "pm25": 13.0,
-            "pm10": 21.0,
-            "usAqi": 45.0,
+            "pm25": Decimal("13.0"),
+            "pm10": Decimal("21.0"),
+            "usAqi": Decimal("45.0"),
             "ttl": 1792195200,
         },
     ]
@@ -59,6 +60,20 @@ def test_map_readings_preserves_open_meteo_fields_in_reading_model():
         },
     ],
 )
+def test_map_readings_uses_decimal_numbers_for_dynamodb():
+    readings = ingest.map_readings("delhi", open_meteo_response())
+    assert isinstance(readings[0]["pm25"], Decimal)
+    assert isinstance(readings[0]["pm10"], Decimal)
+    assert isinstance(readings[0]["usAqi"], Decimal)
+
+
+def test_map_readings_rejects_non_finite_numeric_values():
+    response = open_meteo_response()
+    response["hourly"]["us_aqi"][0] = float("nan")
+    with pytest.raises(ingest.IngestionError, match="non-finite"):
+        ingest.map_readings("delhi", response)
+
+
 def test_map_readings_rejects_missing_or_invalid_hourly_data(response):
     with pytest.raises(ingest.IngestionError):
         ingest.map_readings("delhi", response)

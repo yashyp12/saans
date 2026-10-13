@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping, Sequence
 from urllib.error import URLError
 from urllib.parse import urlencode
@@ -56,20 +57,29 @@ def map_readings(
 
     generated_at = int((now or datetime.now(timezone.utc)).timestamp())
     readings = []
-    try:
-        for index, timestamp in enumerate(times):
-            readings.append(
-                {
-                    "PK": f"SCHOOL#{school_id}",
-                    "SK": f"AQ#{timestamp}",
-                    "pm25": float(pm25[index]),
-                    "pm10": float(pm10[index]),
-                    "usAqi": float(us_aqi[index]),
-                    "ttl": generated_at + 7 * 24 * 60 * 60,
-                }
+    for index, timestamp in enumerate(times):
+        try:
+            # Boto3's DynamoDB resource serializer rejects Python floats.
+            # Decimal values are accepted and preserve source precision.
+            numeric_values = (
+                Decimal(str(pm25[index])),
+                Decimal(str(pm10[index])),
+                Decimal(str(us_aqi[index])),
             )
-    except (TypeError, ValueError) as exc:
-        raise IngestionError("Open-Meteo hourly fields contain invalid values") from exc
+        except (InvalidOperation, TypeError, ValueError) as exc:
+            raise IngestionError("Open-Meteo hourly fields contain invalid values") from exc
+        if not all(value.is_finite() for value in numeric_values):
+            raise IngestionError("Open-Meteo hourly fields contain non-finite values")
+        readings.append(
+            {
+                "PK": f"SCHOOL#{school_id}",
+                "SK": f"AQ#{timestamp}",
+                "pm25": numeric_values[0],
+                "pm10": numeric_values[1],
+                "usAqi": numeric_values[2],
+                "ttl": generated_at + 7 * 24 * 60 * 60,
+            }
+        )
     return readings
 
 
