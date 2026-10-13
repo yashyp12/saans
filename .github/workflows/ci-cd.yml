@@ -1,0 +1,164 @@
+name: Saans CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saans-ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies and pytest
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt pytest
+
+      - name: Run backend tests
+        run: python -m pytest backend/tests -q
+
+  frontend-build:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install locked frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build production frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://m23og9ihef.execute-api.ap-south-1.amazonaws.com' }}
+        run: npm run build
+
+      - name: Save the exact frontend build for deployment
+        uses: actions/upload-artifact@v7
+        with:
+          name: saans-frontend-dist
+          path: frontend/dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  sam-validation-build:
+    name: SAM validate and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up AWS SAM CLI
+        uses: aws-actions/setup-sam@v3
+        with:
+          use-installer: true
+          token: ${{ github.token }}
+
+      - name: Validate SAM template
+        run: sam validate --template-file template.yaml --region ap-south-1
+
+      - name: Build Lambda packages
+        run: sam build --template-file template.yaml --region ap-south-1
+
+  deploy-frontend:
+    name: Deploy frontend to S3 and CloudFront
+    needs:
+      - backend-tests
+      - frontend-build
+      - sam-validation-build
+    # Deployment stays skipped until the OIDC role and destination variables are configured.
+    # It can run only from main, never from an unmerged pull request or feature branch.
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+        vars.AWS_DEPLOY_ROLE_ARN != '' &&
+        vars.AWS_FRONTEND_BUCKET != '' &&
+        vars.CLOUDFRONT_DISTRIBUTION_ID != ''
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download tested frontend build
+        uses: actions/download-artifact@v8
+        with:
+          name: saans-frontend-dist
+          path: frontend/dist/
+
+      - name: Configure short-lived AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ap-south-1
+          allowed-account-ids: "089781651236"
+          role-session-name: saans-github-actions
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Upload static frontend (without deleting existing objects)
+        env:
+          AWS_FRONTEND_BUCKET: ${{ vars.AWS_FRONTEND_BUCKET }}
+        run: |
+          aws s3 sync frontend/dist/ "s3://${AWS_FRONTEND_BUCKET}/" \
+            --region ap-south-1
+
+      - name: Invalidate only the website entry points
+        id: invalidate
+        env:
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          INVALIDATION_ID="$(aws cloudfront create-invalidation \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --paths "/" "/index.html" "/favicon.svg" \
+            --query "Invalidation.Id" \
+            --output text)"
+          echo "id=${INVALIDATION_ID}" >> "$GITHUB_OUTPUT"
+          echo "Created CloudFront invalidation: ${INVALIDATION_ID}"
+
+      - name: Wait for cache invalidation
+        env:
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+          INVALIDATION_ID: ${{ steps.invalidate.outputs.id }}
+        run: |
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --id "${INVALIDATION_ID}"
+
+      - name: Smoke-test public frontend and favicon
+        env:
+          AWS_FRONTEND_DOMAIN: ${{ vars.AWS_FRONTEND_DOMAIN || 'd1rvgy019uvbns.cloudfront.net' }}
+        run: |
+          curl --fail --silent --show-error "https://${AWS_FRONTEND_DOMAIN}/" --output /dev/null
+          curl --fail --silent --show-error "https://${AWS_FRONTEND_DOMAIN}/favicon.svg" --output /dev/null
+          echo "Frontend and favicon returned successful HTTP responses."
