@@ -93,6 +93,23 @@ def test_indoor_slot_is_not_evaluated_by_outdoor_rules():
     assert result(220, outdoor=False)["verdict"] == "GO"
 
 
+def test_half_hour_activity_uses_hourly_forecast_bucket_that_overlaps_it():
+    readings = [
+        {"time": "2026-10-09T14:00:00", "usAqi": 157},
+        {"time": "2026-10-09T15:00:00", "usAqi": 90},
+    ]
+    decision = decide(
+        [slot(start="14:30", end="15:00")],
+        readings,
+        {},
+        NOW,
+    )
+
+    # The 14:00 reading describes 14:00-15:00 and overlaps this activity.
+    # The 15:00 reading starts at the activity's exclusive end, so is excluded.
+    assert decision["verdicts"][0]["aqi"] == 157
+
+
 def test_empty_forecast_defaults_to_green_without_side_effects():
     decision = decide([slot()], [], {}, NOW)
     assert decision["verdicts"][0]["verdict"] == "GO"
