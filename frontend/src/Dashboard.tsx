@@ -2,7 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, apiConfigurationError, hasLiveApi, isDemoMode, type SimulationRequest } from './api'
-import { briefBySchool, forecastBySchool, schools, subscribers } from './data/mockData'
+import { briefBySchool, forecastBySchool, schools } from './data/mockData'
 import type { BriefResponse, Tier } from './types'
 
 type Scenario = 'normal' | 'stubble' | 'severe'
@@ -43,11 +43,12 @@ const composeCircular = (brief: BriefResponse) => {
   const actions =
     affected.length === 0
       ? 'Please continue following normal school safety routines.'
-      : affected.map((slot) => `${slot.label}: ${slot.verdict} — ${slot.alternative}.`).join(' ')
+      : affected.map((slot) => `${slot.label}: ${slot.verdict} — ${slot.alternative}. ${slot.aqi == null ? 'AQI unavailable for this activity.' : `Forecast AQI ${Math.round(slot.aqi)}.`}`).join(' ')
   const safeWindow = brief.safeWindows[0]
     ? ` The recommended safer window is ${brief.safeWindows[0].from}–${brief.safeWindows[0].to}.`
     : ''
-  return `Dear parents and staff, ${lead} ${actions}${safeWindow} Please follow the school’s activity guidance today.`
+  const simulated = brief.simulated ? 'SIMULATION ONLY — ' : ''
+  return `${simulated}Dear parents and staff, ${lead} ${actions}${safeWindow} Please follow the school’s activity guidance today. This is an editable local template, not an AI-generated circular.`
 }
 
 const simulateDemoBrief = (brief: BriefResponse, input: SimulationRequest): BriefResponse => {
@@ -100,7 +101,7 @@ function App() {
   const [scenario, setScenario] = useState<Scenario>('normal')
   const [aqiOverride, setAqiOverride] = useState<number | null>(null)
   const [simulationInput, setSimulationInput] = useState<SimulationRequest>({ scenario: 'normal' })
-  const [notice, setNotice] = useState('')
+  const [notice, setNotice] = useState<string | null>(null)
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
   const queryClient = useQueryClient()
 
@@ -133,7 +134,7 @@ function App() {
   const stale = hasLiveApi && briefQuery.data ? Date.now() - new Date(briefQuery.data.generatedAt).getTime() > 3 * 60 * 60 * 1000 : false
   const chartData = (forecastQuery.data ?? []).map((entry) => ({ ...entry, label: formatHour(entry.time) }))
   const defaultNotice = useMemo(() => (brief ? composeCircular(brief) : ''), [brief])
-  const activeNotice = notice || defaultNotice
+  const activeNotice = notice ?? defaultNotice
   const tier = brief ? tierStyles[brief.headline.tier] : tierStyles.GREEN
 
   const retry = () => {
@@ -196,7 +197,7 @@ function App() {
           </div>
           <label className="school-picker">
             <span>School</span>
-            <select value={selectedSchoolId} onChange={(event) => { setSelectedSchoolId(event.target.value); setNotice(''); void queryClient.removeQueries({ queryKey: ['simulate'] }) }}>
+            <select value={selectedSchoolId} onChange={(event) => { setSelectedSchoolId(event.target.value); setNotice(null); void queryClient.removeQueries({ queryKey: ['simulate'] }) }}>
               {availableSchools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
             </select>
           </label>
@@ -343,16 +344,12 @@ function App() {
           </article>
 
           <article className="workspace-card circular-card">
-            <div className="workspace-heading"><div><p className="eyebrow">Share the call</p><h2>Notice draft</h2></div><span className="status-pill">{isDemoMode ? 'Template' : 'Unavailable'}</span></div>
-            {!isDemoMode ? <div className="empty-inset">Circular generation is not connected to the configured backend. No text is presented as live.</div> : (
-              <>
-                <p className="workspace-copy">Edit this decision-based notice template, then copy it for your school’s approved communication channel. Nothing is emailed or sent from Saans.</p>
-                <label className="sr-only" htmlFor="notice">School notice</label>
-                <textarea id="notice" value={activeNotice} onChange={(event) => setNotice(event.target.value)} className="notice-editor" />
-                <div className="composer-footer"><span>Draft text only · sending is not connected</span><button type="button" className="button button-outline" onClick={copyNotice} aria-live="polite">{copyStatus === 'copied' ? 'Copied ✓' : copyStatus === 'failed' ? 'Copy failed' : 'Copy notice'}</button></div>
-                {subscribers.length === 0 && <p className="empty-note">No subscribers in this demo workspace.</p>}
-              </>
-            )}
+            <div className="workspace-heading"><div><p className="eyebrow">Share the call</p><h2>Notice draft</h2></div><span className="status-pill">{brief.simulated ? 'Simulation draft' : isDemoMode ? 'Preview template' : 'Editable template'}</span></div>
+            <p className="workspace-copy">This editable English template is assembled locally from the briefing shown above. It is not AI-generated, and Saans does not email or send it.</p>
+            {brief.simulated && <div className="simulation-notice" role="note">Simulation only — do not distribute this draft as a real school notice.</div>}
+            <label className="sr-only" htmlFor="notice">Editable English school notice</label>
+            <textarea id="notice" value={activeNotice} onChange={(event) => setNotice(event.target.value)} className="notice-editor" />
+            <div className="composer-footer"><span>Local template · review and approve before sharing</span><button type="button" className="button button-outline" onClick={copyNotice} aria-live="polite">{copyStatus === 'copied' ? 'Copied ✓' : copyStatus === 'failed' ? 'Copy failed' : 'Copy notice'}</button></div>
           </article>
         </section>
       </main>
