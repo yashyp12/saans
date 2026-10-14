@@ -1,0 +1,12 @@
+name : CI Basics
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    first_job:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Show a success message
+            run: echo "My first github actions workflow is running "
