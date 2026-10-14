@@ -280,8 +280,6 @@ Errors use a consistent shape: `{ "error": { "code": "...", "message": "..." } }
 
 ## License
 
-Released under the MIT License. See [LICENSE](LICENSE).
- 
  All rights reserved 2026
 
 </div>
