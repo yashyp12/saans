@@ -4,9 +4,18 @@ on:
     push:
     pull_request:
 
+permissions:
+    contents: read
+
 jobs:
     first_job:
         runs-on: ubuntu-latest
         steps:
+          - name: Checkout repository
+            uses: actions/checkout@v7
+
           - name: Show a success message
             run: echo "My first github actions workflow is running "
+
+          - name: List repo files
+            run: ls -al
