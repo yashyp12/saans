@@ -35,8 +35,7 @@ jobs: #Starts the section where you define units of work.
           cache-dependency-path: requirements.txt
 
       - name: Install backend dependencies and pytest
-        run: |  ## tells GitHub to execute shell commands.
-          python -m pip install --upgrade pip
+        run: |  ## tells GitHub to execute shell commands.    
           python -m pip install -r backend/requirements.txt pytestt
 
       - name: Run backend tests
