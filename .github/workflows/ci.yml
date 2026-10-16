@@ -18,21 +18,26 @@ concurrency:
   cancel-in-progress: true
 
 
+jobs: #Starts the section where you define units of work.
 
+  backend-tests: ## The unique ID of this job. Other jobs can refer to it.
+    name: Backend Tests
+    runs-on: ubuntu-latest ## Runs this job on a GitHub-hosted Ubuntu runner.
+    steps:
+      - name: Check out source 
+        uses: actions/checkout@v7 ## Invokes a reusable GitHub Action to check out your repository's source code. @v7 selects the action's major version tag.
 
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "pip" ##Enables caching of pip packages to speed up future runs.
+          cache-dependency-path: requirements.txt
 
+      - name: Install backend dependencies and pytest
+        run: |  ## tells GitHub to execute shell commands.
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt pytestt
 
-
-
-jobs:
-    first_job:
-        runs-on: ubuntu-latest
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v7
-
-          - name: Show a success message
-            run: echo "My first github actions workflow is running "
-
-          - name: List repo files
-            run: ls -al
+      - name: Run backend tests
+        run: python -m pytest backend/tests -q
