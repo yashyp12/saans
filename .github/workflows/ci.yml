@@ -1,11 +1,28 @@
-name : CI Basics
+name : Saans CI/CD
 
+## on > define the events that will trigger the workflow. 
+## In this case, the workflow will be triggered on pull requests to the main branch, pushes to the main branch, and manual triggers via workflow_dispatch.
 on:
-    push:
-    pull_request:
+  pull_request:
+    branches: [main]
+  
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
     contents: read
+
+concurrency:
+  group: saans-ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+
+
+
+
+
+
 
 jobs:
     first_job:
