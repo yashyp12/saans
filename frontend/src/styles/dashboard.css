@@ -495,3 +495,53 @@ input[type="range"]:focus-visible {
   .ledger-row { gap: 8px; }
   .ledger-row span, .ledger-row strong { overflow-wrap: anywhere; }
 }
+
+
+/* Explicit, user-triggered refresh keeps live readings available without polling. */
+.source-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  min-width: 0;
+}
+.refresh-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.refresh-button {
+  min-height: 42px;
+  padding: 9px 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.refresh-button:disabled {
+  opacity: .65;
+  cursor: progress;
+}
+.refresh-feedback {
+  color: #963239;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+@media (max-width: 760px) {
+  .source-controls {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+@media (max-width: 420px) {
+  .source-controls,
+  .refresh-controls {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+  .refresh-button {
+    width: 100%;
+    white-space: normal;
+  }
+}
