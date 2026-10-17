@@ -441,3 +441,57 @@ input[type="range"]:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .scenario, .skeleton-header, .skeleton-panel { transition: none; animation: none; }
 }
+
+
+/* Small-screen layout refinements: readable cards, controls and activity rows. */
+.page-shell, .header-inner, .hero-grid, .analysis-grid, .lower-grid,
+.content-section, .metric-panel, .workspace-card { min-width: 0; }
+
+@media (max-width: 760px) {
+  .page-shell, .header-inner { width: calc(100% - 28px); }
+  .header-inner { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px 0 16px; }
+  .header-context { gap: 4px; }
+  .header-label { letter-spacing: .08em; }
+  .school-picker { grid-template-columns: minmax(0, 1fr); gap: 6px; width: 100%; }
+  .school-picker select { min-height: 48px; }
+  .page-shell { padding-top: 22px; }
+  .intro-row { margin: 12px 0 20px; }
+  .page-title { font-size: clamp(2.45rem, 11vw, 3.35rem); line-height: 1.02; letter-spacing: -.045em; }
+  .source-note { flex-wrap: wrap; overflow-wrap: anywhere; font-size: .8rem; }
+  .decision-panel { min-height: 0; padding: 22px; }
+  .decision-number { align-items: flex-start; flex-direction: column; gap: 8px; margin: 24px 0 14px; font-size: clamp(3.5rem, 16vw, 4.5rem); line-height: .94; }
+  .decision-number > span { font-size: .82rem; letter-spacing: .04em; }
+  .decision-panel h2 { font-size: clamp(1.45rem, 6.5vw, 1.9rem); line-height: 1.16; }
+  .decision-explanation { font-size: .94rem; line-height: 1.6; }
+  .decision-footer { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .safe-panel, .content-section, .metric-panel, .workspace-card { min-width: 0; padding: 20px; }
+  .safe-time { padding-top: 22px; font-size: clamp(2rem, 9vw, 2.8rem); overflow-wrap: anywhere; }
+  .safe-copy, .safe-rule, .workspace-copy { line-height: 1.6; }
+  .section-heading { align-items: flex-start; flex-wrap: wrap; }
+  .section-caption { max-width: 100%; overflow-wrap: anywhere; }
+  .timeline-item { grid-template-columns: 52px 12px minmax(0, 1fr); gap: 9px; }
+  .timeline-time { min-width: 0; }
+  .timeline-main { min-width: 0; overflow-wrap: anywhere; }
+  .timeline-title { align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+  .timeline-title h3 { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  .verdict { max-width: 100%; white-space: normal; text-align: center; }
+  .tier-text { grid-column: 3; padding-top: 3px; font-size: .72rem; }
+  .chart-wrap { width: 100%; min-width: 0; height: clamp(220px, 66vw, 280px); }
+  .legend { gap: 8px 12px; }
+  .legend-item { min-height: 28px; font-size: .72rem; }
+  .scenario { width: 100%; min-height: 48px; }
+  .simulator-actions .button, .composer-footer .button { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; }
+  .notice-editor { width: 100%; min-width: 0; min-height: 220px; resize: vertical; }
+  .composer-footer { align-items: stretch; gap: 12px; }
+}
+
+@media (max-width: 420px) {
+  .decision-panel, .safe-panel, .content-section, .metric-panel, .workspace-card { padding: 18px; border-radius: 16px; }
+  .decision-number { font-size: clamp(3.35rem, 16vw, 4rem); }
+  .timeline-item { grid-template-columns: 47px 10px minmax(0, 1fr); gap: 8px; }
+  .timeline-main p { font-size: .9rem; line-height: 1.5; }
+  .timeline-alternative { overflow-wrap: anywhere; }
+  .safe-rule { font-size: .83rem; }
+  .ledger-row { gap: 8px; }
+  .ledger-row span, .ledger-row strong { overflow-wrap: anywhere; }
+}
