@@ -16,10 +16,10 @@ const tierStyles: Record<Tier, { label: string; color: string; soft: string; ico
 }
 
 const verdictMeta = {
-  GO: { label: 'GO', text: 'Outdoor activity can continue', className: 'verdict-go' },
-  MODIFY: { label: 'MODIFY', text: 'Shorten or lower intensity', className: 'verdict-modify' },
-  MOVE: { label: 'MOVE', text: 'Use a safer time window', className: 'verdict-move' },
-  CANCEL: { label: 'CANCEL', text: 'Move indoors or cancel', className: 'verdict-cancel' },
+  GO: { label: 'Go ahead', text: 'Outdoor activity can continue', className: 'verdict-go' },
+  MODIFY: { label: 'Make it shorter', text: 'Shorten the activity or lower its intensity', className: 'verdict-modify' },
+  MOVE: { label: 'Move to a safer time', text: 'Try the suggested safer time', className: 'verdict-move' },
+  CANCEL: { label: 'Keep indoors', text: 'Keep the activity indoors or cancel it', className: 'verdict-cancel' },
 } as const
 
 const formatDate = (value: string) =>
@@ -39,16 +39,23 @@ const composeCircular = (brief: BriefResponse) => {
   const lead =
     brief.headline.tier === 'GREEN'
       ? 'Outdoor activities can proceed as planned today.'
-      : `Today’s outdoor plan has been adjusted because the school AQI is ${brief.headline.maxAqi} (${brief.headline.tier}).`
+      : `Today’s outdoor plan has changed because the air-quality score is ${brief.headline.maxAqi} (${brief.headline.tier}).`
   const actions =
     affected.length === 0
       ? 'Please continue following normal school safety routines.'
-      : affected.map((slot) => `${slot.label}: ${slot.verdict} — ${slot.alternative}. ${slot.aqi == null ? 'AQI unavailable for this activity.' : `Forecast AQI ${Math.round(slot.aqi)}.`}`).join(' ')
+      : affected.map((slot) => {
+          const action = slot.verdict === 'MODIFY'
+            ? 'should be shorter or less intense'
+            : slot.verdict === 'MOVE'
+              ? 'should move to a safer time'
+              : 'should stay indoors'
+          return `${slot.label} ${action}. ${slot.alternative}. ${slot.aqi == null ? 'No air-quality score is available.' : `Air-quality score ${Math.round(slot.aqi)}.`}`
+        }).join(' ')
   const safeWindow = brief.safeWindows[0]
-    ? ` The recommended safer window is ${brief.safeWindows[0].from}–${brief.safeWindows[0].to}.`
+    ? ` A better time for this activity is ${brief.safeWindows[0].from}–${brief.safeWindows[0].to}.`
     : ''
   const simulated = brief.simulated ? 'SIMULATION ONLY — ' : ''
-  return `${simulated}Dear parents and staff, ${lead} ${actions}${safeWindow} Please follow the school’s activity guidance today. This is an editable local template, not an AI-generated circular.`
+  return `${simulated}Dear parents and staff, ${lead} ${actions}${safeWindow} Please follow the school’s activity guidance today. This is a draft you can edit. It was not written by AI.`
 }
 
 const simulateDemoBrief = (brief: BriefResponse, input: SimulationRequest): BriefResponse => {
@@ -156,14 +163,14 @@ function App() {
   if (schoolsQuery.isLoading || briefQuery.isLoading || forecastQuery.isLoading) return <LoadingState />
 
   if (schoolsQuery.isError || briefQuery.isError || forecastQuery.isError) {
-    const error = schoolsQuery.error?.message ?? briefQuery.error?.message ?? forecastQuery.error?.message ?? 'The configured API did not respond.'
+    const error = schoolsQuery.error?.message ?? briefQuery.error?.message ?? forecastQuery.error?.message ?? 'The live data service did not respond. Please try again.'
     return (
       <div className="page-shell centered-state">
         <Logo />
         <div className="state-card error-state">
-          <span className="eyebrow">{apiConfigurationError ? 'Configuration problem' : hasLiveApi ? 'API connection problem' : 'Connection problem'}</span>
-          <h1>Today’s briefing could not load.</h1>
-          <p>{apiConfigurationError ? 'Set a valid VITE_API_BASE for a production build before opening the briefing.' : error}</p>
+          <span className="eyebrow">{apiConfigurationError ? 'Website setup problem' : hasLiveApi ? 'Live data connection problem' : 'Connection problem'}</span>
+          <h1>We couldn’t load today’s school plan.</h1>
+          <p>{apiConfigurationError ? 'The website is missing its live data address. The deployment settings need to be checked.' : error}</p>
           <button className="button button-dark" type="button" onClick={retry}>Try again</button>
         </div>
       </div>
@@ -176,8 +183,8 @@ function App() {
         <Logo />
         <div className="state-card">
           <span className="eyebrow">Waiting for setup</span>
-          <h1>No school data to brief yet.</h1>
-          <p>Seed a school and its forecast before using the principal brief.</p>
+          <h1>No school data is ready yet.</h1>
+          <p>Add a school and load its air-quality forecast before using this page.</p>
           <button className="button button-dark" type="button" onClick={retry}>Refresh data</button>
         </div>
       </div>
@@ -192,11 +199,11 @@ function App() {
         <div className="header-inner">
           <Logo />
           <div className="header-context">
-            <span className="header-label">Principal briefing</span>
+            <span className="header-label">Today’s school plan</span>
             <span className="header-date">{new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
           </div>
           <label className="school-picker">
-            <span>School</span>
+            <span>Choose school</span>
             <select value={selectedSchoolId} onChange={(event) => { setSelectedSchoolId(event.target.value); setNotice(null); void queryClient.removeQueries({ queryKey: ['simulate'] }) }}>
               {availableSchools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
             </select>
@@ -205,17 +212,17 @@ function App() {
       </header>
 
       <main className="page-shell">
-        {isDemoMode && <div className="mode-banner"><span className="mode-dot" /> Demo workspace <span>Local fixtures are shown for exploration; they are not live air-quality readings.</span></div>}
-        {stale && <div className="freshness-banner"><span>!</span> This briefing is more than three hours old. Refresh before making a final decision.</div>}
+        {isDemoMode && <div className="mode-banner"><span className="mode-dot" /> Sample view <span>This is sample data, not live air-quality information.</span></div>}
+        {stale && <div className="freshness-banner"><span>!</span> This plan is more than three hours old. Refresh it before making a final decision.</div>}
 
         <section className="intro-row">
           <div>
-            <p className="eyebrow">Morning decision · {currentSchool.city}</p>
-            <h1 className="page-title">A clear call for <em>today.</em></h1>
+            <p className="eyebrow">Today’s plan · {currentSchool.city}</p>
+            <h1 className="page-title">What should happen today?</h1>
           </div>
           <div className="source-note">
             <span className="source-pulse" />
-            {brief.simulated ? 'Scenario result' : isDemoMode ? `Fixture timestamp · ${formatDate(brief.generatedAt)}` : `Live · Updated ${formatDate(brief.generatedAt)}`}
+            {brief.simulated ? 'Scenario result' : isDemoMode ? `Sample data · ${formatDate(brief.generatedAt)}` : `Live data · Updated ${formatDate(brief.generatedAt)}`}
           </div>
         </section>
 
@@ -223,38 +230,38 @@ function App() {
           <article className="decision-panel" style={{ '--tier': tier.color, '--tier-soft': tier.soft } as CSSProperties}>
             <div className="decision-topline">
               <span className="tier-symbol">{tier.icon}</span>
-              <span className="decision-tier">{brief.headline.tier}</span>
+              <span className="decision-tier">{tier.label}</span>
               {brief.simulated && <span className="simulated-tag">SIMULATED</span>}
             </div>
-            <div className="decision-number"><span>AQI</span>{brief.headline.maxAqi}</div>
+            <div className="decision-number" aria-label={`Air-quality score ${brief.headline.maxAqi}`}><span>Air quality</span>{brief.headline.maxAqi}</div>
             <h2>{brief.headline.text}</h2>
-            <p className="decision-explanation">The highest forecast during planned outdoor activities is <strong>{brief.headline.maxAqi} US AQI</strong>. Saans compares each activity with your school policy and recommends the safest practical action.</p>
+            <p className="decision-explanation">The air-quality score could reach <strong>{brief.headline.maxAqi}</strong> during outdoor activities. Saans checks the school’s rules and suggests what to do for each activity.</p>
             <div className="decision-footer">
-              <span className="policy-note">Policy-based guidance · not medical advice</span>
-              <button type="button" className="link-button" onClick={() => document.getElementById('activity-timeline')?.scrollIntoView({ behavior: 'smooth' })}>See the reasoning <span>↓</span></button>
+              <span className="policy-note">A guide for school decisions · not medical advice</span>
+              <button type="button" className="link-button" onClick={() => document.getElementById('activity-timeline')?.scrollIntoView({ behavior: 'smooth' })}>See why <span>↓</span></button>
             </div>
           </article>
 
           <aside className="safe-panel">
-            <div className="section-kicker"><span className="line" /> Best next window</div>
+            <div className="section-kicker"><span className="line" /> A better time</div>
             {brief.safeWindows[0] ? (
               <>
                 <p className="safe-time">{brief.safeWindows[0].from}<span>–</span>{brief.safeWindows[0].to}</p>
-                <p className="safe-copy">The nearest school-day window meeting the safe-window rule for <strong>{brief.safeWindows[0].slotId}</strong>.</p>
+                <p className="safe-copy">Saans found a later time when the air may be better for <strong>{brief.safeWindows[0].slotId}</strong>.</p>
                 <div className="window-bar"><span /><span /><span className="active" /><span className="active" /><span /><span /></div>
                 <div className="window-labels"><span>07:00</span><span>17:00</span></div>
               </>
             ) : (
-              <div className="empty-inset">No safe outdoor window is available before 17:00. Keep the activity indoors.</div>
+              <div className="empty-inset">No better outdoor time was found before 5 pm. Keep this activity indoors.</div>
             )}
-            <div className="safe-rule"><span>↳</span> Saans scans the school day for the nearest contiguous safe span.</div>
+            <div className="safe-rule"><span>↳</span> Saans checks the school day for a better time to do the activity.</div>
           </aside>
         </section>
 
         <section id="activity-timeline" className="content-section timeline-section">
           <div className="section-heading">
-            <div><p className="eyebrow">Activity plan</p><h2>Today’s timeline</h2></div>
-            <span className="section-caption">{brief.slots.length} scheduled activities</span>
+            <div><p className="eyebrow">Activity plan</p><h2>Today’s activity plan</h2></div>
+            <span className="section-caption">{brief.slots.length} activities planned</span>
           </div>
           <div className="timeline-list">
             {brief.slots.map((slot, index) => {
@@ -266,7 +273,7 @@ function App() {
                   <div className="timeline-rail"><span className="rail-dot" style={{ background: slotTier.color }} />{index < brief.slots.length - 1 && <span className="rail-line" />}</div>
                   <div className="timeline-main">
                     <div className="timeline-title"><h3>{slot.label}</h3><span className={`verdict ${action.className}`}>{action.label}</span></div>
-                    <p>{action.text}. {slot.reason}.</p>
+                    <p>{action.text}. Air-quality score: {slot.aqi == null ? 'not available' : Math.round(slot.aqi)}. Time: {slot.start}–{slot.end}.</p>
                     <span className="timeline-alternative">{slot.alternative}</span>
                   </div>
                   <span className="tier-text" style={{ color: slotTier.color }}><span>{slotTier.icon}</span> {slot.tier}</span>
@@ -278,44 +285,44 @@ function App() {
 
         <section className="analysis-grid">
           <article className="content-section forecast-section">
-            <div className="section-heading"><div><p className="eyebrow">Air outlook</p><h2>Next 48 hours</h2></div><span className="section-caption">US AQI · hourly</span></div>
+            <div className="section-heading"><div><p className="eyebrow">Air outlook</p><h2>Next 48 hours</h2></div><span className="section-caption">Air-quality score · hourly</span></div>
             {chartData.length === 0 ? <div className="empty-inset">No forecast readings are available for this school.</div> : (
               <figure className="chart-figure">
-                <figcaption>Lower values indicate safer outdoor conditions under the school policy.</figcaption>
-                <div className="chart-wrap" role="img" aria-label="48-hour hourly US AQI forecast chart">
+                <figcaption>A lower score usually means cleaner air. The school uses this score to help decide on outdoor activities.</figcaption>
+                <div className="chart-wrap" role="img" aria-label="Two-day hourly air-quality forecast chart">
                   <ResponsiveContainer>
                     <AreaChart data={chartData} margin={{ top: 16, right: 12, left: -24, bottom: 4 }}>
                       <defs><linearGradient id="aqiFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={tier.color} stopOpacity={0.28} /><stop offset="100%" stopColor={tier.color} stopOpacity={0.01} /></linearGradient></defs>
                       <CartesianGrid strokeDasharray="2 5" stroke="#dfe5df" vertical={false} />
                       <XAxis dataKey="label" tickLine={false} axisLine={false} interval={5} className="chart-axis" />
                       <YAxis tickLine={false} axisLine={false} domain={[0, 260]} className="chart-axis" />
-                      <Tooltip formatter={(value: number) => [`AQI ${value}`, 'Reading']} labelFormatter={(label) => `At ${label}`} contentStyle={{ borderRadius: 12, border: '1px solid #d9e2d9', boxShadow: '0 8px 24px rgba(28, 54, 38, .12)' }} />
+                      <Tooltip formatter={(value: number) => [`Score ${value}`, 'Air quality']} labelFormatter={(label) => `At ${label}`} contentStyle={{ borderRadius: 12, border: '1px solid #d9e2d9', boxShadow: '0 8px 24px rgba(28, 54, 38, .12)' }} />
                       <Area type="monotone" dataKey="aqi" stroke={tier.color} fill="url(#aqiFill)" strokeWidth={2.5} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="legend" aria-label="AQI tier legend">{(['GREEN', 'AMBER', 'ORANGE', 'RED', 'MAROON'] as Tier[]).map((item) => <span className="legend-item" key={item}><i aria-hidden="true" style={{ background: tierStyles[item].color }} /><span>{item}</span></span>)}</div>
+                <div className="legend" aria-label="AQI tier legend">{(['GREEN', 'AMBER', 'ORANGE', 'RED', 'MAROON'] as Tier[]).map((item) => <span className="legend-item" key={item}><i aria-hidden="true" style={{ background: tierStyles[item].color }} /><span>{tierStyles[item].label}</span></span>)}</div>
               </figure>
             )}
           </article>
 
           <article className="metric-panel">
-            <div className="section-kicker"><span className="line" /> Exposure ledger</div>
-            <h2>What the plan protects</h2>
-            <p>Outdoor minutes avoided during unhealthy air this week.</p>
+            <div className="section-kicker"><span className="line" /> Outdoor time protected</div>
+            <h2>Outdoor time kept safer</h2>
+            <p>Minutes children were kept away from outdoor activities while the air was poor this week.</p>
             <div className="ledger-number">{brief.ledger.weekMinutesAvoided}<small>min</small></div>
             <div className="ledger-rule" />
-            <div className="ledger-row"><span>Minutes exposed</span><strong>{brief.ledger.weekMinutesExposed}</strong></div>
-            <div className="ledger-row"><span>Data source</span><strong>{brief.source}</strong></div>
+            <div className="ledger-row"><span>Minutes outdoors in poor air</span><strong>{brief.ledger.weekMinutesExposed}</strong></div>
+            <div className="ledger-row"><span>Forecast from</span><strong>Open-Meteo</strong></div>
           </article>
         </section>
 
         <section className="lower-grid">
           <article className="workspace-card simulator-card">
-            <div className="workspace-heading"><div><p className="eyebrow">What if?</p><h2>Bad-air simulator</h2></div><span className="workspace-icon">↗</span></div>
-            <p className="workspace-copy">Explore a scenario without changing school data or sending a notification.</p>
+            <div className="workspace-heading"><div><p className="eyebrow">What if?</p><h2>Try a bad-air day</h2></div><span className="workspace-icon">↗</span></div>
+            <p className="workspace-copy">Try different air-quality conditions. This changes only the preview; it does not change school data or send messages.</p>
             <fieldset className="scenario-fieldset">
-              <legend>Choose a scenario</legend>
+              <legend>Choose a type of day</legend>
               <div className="scenario-list">
                 {(['normal', 'stubble', 'severe'] as Scenario[]).map((item) => (
                   <button
@@ -326,30 +333,30 @@ function App() {
                     onClick={() => { setScenario(item); setAqiOverride(null); setSimulationInput({ scenario: item }) }}
                   >
                     <span className="scenario-mark" aria-hidden="true">{item === 'normal' ? '○' : item === 'stubble' ? '◒' : '●'}</span>
-                    <span>{item === 'stubble' ? 'Stubble season' : item[0].toUpperCase() + item.slice(1)}</span>
+                    <span>{item === 'normal' ? 'Usual day' : item === 'stubble' ? 'Crop-burning smoke' : 'Very poor air'}</span>
                   </button>
                 ))}
               </div>
             </fieldset>
             <div className="range-control">
               <label className="range-label" htmlFor="aqi-override">
-                <span>AQI override</span>
+                <span>Set air-quality score</span>
                 <strong>{aqiOverride === null ? 'Off' : aqiOverride}</strong>
               </label>
-              <input id="aqi-override" type="range" min="60" max="340" value={aqiOverride ?? 180} aria-valuetext={aqiOverride === null ? 'Override off; slider reference 180' : `${aqiOverride} AQI`} onChange={(event) => { const value = Number(event.target.value); setAqiOverride(value); setSimulationInput({ aqiOverride: value }) }} />
-              <div className="range-scale"><span>60 · Lower</span><span>340 · Severe</span></div>
+              <input id="aqi-override" type="range" min="60" max="340" value={aqiOverride ?? 180} aria-valuetext={aqiOverride === null ? 'Using forecast; slider starts at 180' : `${aqiOverride} AQI`} onChange={(event) => { const value = Number(event.target.value); setAqiOverride(value); setSimulationInput({ aqiOverride: value }) }} />
+              <div className="range-scale"><span>60 · Better</span><span>340 · Very poor</span></div>
             </div>
-            <div className="simulator-actions"><button type="button" className="button button-dark" onClick={runSimulation} disabled={simulationQuery.isFetching}>{simulationQuery.isFetching ? 'Calculating…' : 'Run simulation'}</button>{simulationQuery.isError && <span className="inline-error">{simulationQuery.error.message}</span>}</div>
-            <p className="micro-note">{hasLiveApi ? 'The backend evaluates this scenario without changing school data.' : 'This scenario uses the labelled local sample workspace.'} Results are always labelled simulated.</p>
+            <div className="simulator-actions"><button type="button" className="button button-dark" onClick={runSimulation} disabled={simulationQuery.isFetching}>{simulationQuery.isFetching ? 'Calculating…' : 'Show result'}</button>{simulationQuery.isError && <span className="inline-error">{simulationQuery.error.message}</span>}</div>
+            <p className="micro-note">{hasLiveApi ? 'Saans checks this test day without changing school data.' : 'This test uses sample data on this computer.'} Results are always labelled simulated.</p>
           </article>
 
           <article className="workspace-card circular-card">
-            <div className="workspace-heading"><div><p className="eyebrow">Share the call</p><h2>Notice draft</h2></div><span className="status-pill">{brief.simulated ? 'Simulation draft' : isDemoMode ? 'Preview template' : 'Editable template'}</span></div>
-            <p className="workspace-copy">This editable English template is assembled locally from the briefing shown above. It is not AI-generated, and Saans does not email or send it.</p>
-            {brief.simulated && <div className="simulation-notice" role="note">Simulation only — do not distribute this draft as a real school notice.</div>}
-            <label className="sr-only" htmlFor="notice">Editable English school notice</label>
+            <div className="workspace-heading"><div><p className="eyebrow">Share the call</p><h2>Message for families and staff</h2></div><span className="status-pill">{brief.simulated ? 'Simulation draft' : isDemoMode ? 'Preview template' : 'Editable template'}</span></div>
+            <p className="workspace-copy">This message is made from the plan above. You can edit and copy it, but Saans does not write it with AI or send it.</p>
+            {brief.simulated && <div className="simulation-notice" role="note">Test preview only — do not send this as a real school message.</div>}
+            <label className="sr-only" htmlFor="notice">Editable message for families and staff</label>
             <textarea id="notice" value={activeNotice} onChange={(event) => setNotice(event.target.value)} className="notice-editor" />
-            <div className="composer-footer"><span>Local template · review and approve before sharing</span><button type="button" className="button button-outline" onClick={copyNotice} aria-live="polite">{copyStatus === 'copied' ? 'Copied ✓' : copyStatus === 'failed' ? 'Copy failed' : 'Copy notice'}</button></div>
+            <div className="composer-footer"><span>Draft only · review before sharing</span><button type="button" className="button button-outline" onClick={copyNotice} aria-live="polite">{copyStatus === 'copied' ? 'Copied ✓' : copyStatus === 'failed' ? 'Copy failed' : 'Copy notice'}</button></div>
           </article>
         </section>
       </main>

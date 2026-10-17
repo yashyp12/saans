@@ -94,3 +94,67 @@ h1 em { color: var(--go); font-style: normal; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; }.reveal { opacity: 1; transform: none; transition: none; }.button { transition: none; } }
 @media (max-width: 800px) { .nav-inner { min-height: 65px; padding: 0 18px; }.menu-button { display: flex; align-items: center; gap: 3px; font-size: 0; }.menu-button span { width: 19px; height: 2px; display: block; background: var(--ink); }.menu-button b { margin-left: 6px; font: 700 .72rem ui-monospace, monospace; font-size: .72rem; }.nav-links { display: none; position: fixed; inset: 65px 0 0; padding: 30px 22px; background: var(--cream); flex-direction: column; align-items: flex-start; gap: 24px; font-size: 1.2rem; }.nav-links.nav-open { display: flex; }.nav-cta { width: 100%; text-align: center; }.landing-hero { grid-template-columns: 1fr; padding-top: 65px; gap: 35px; }.hero-visual { min-height: 400px; }.problem-grid, .verdict-grid, .steps, .feature-bento { grid-template-columns: repeat(2, 1fr); }.feature-bento .feature-wide { grid-column: span 2; }.footer-grid { grid-template-columns: repeat(2, 1fr); }.footer-grid > div:first-child { grid-column: span 2; }.footer-bottom { flex-direction: column; margin-top: 45px; }.docs-layout { grid-template-columns: 1fr; gap: 30px; }.docs-toc { position: static; padding: 18px; border: 1px solid var(--line); }.limits-section { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .landing-section, .limits-section { padding-top: 72px; padding-bottom: 72px; }.hero-copy h1 { font-size: clamp(2.8rem, 14vw, 3.45rem); }.sample-preview { transform: none; }.hero-orbit { display: none; }.problem-grid, .verdict-grid, .steps, .feature-bento { grid-template-columns: 1fr; }.feature-bento .feature-wide { grid-column: auto; }.section-heading-wide { display: block; }.section-heading-wide > a { display: inline-block; margin-top: 10px; }.preview-frame { padding: 25px 12px; }.preview-frame .sample-preview { padding: 15px; }.sample-aqi strong { font-size: 3rem; }.footer-grid { grid-template-columns: 1fr; }.footer-grid > div:first-child { grid-column: auto; }.footer-bottom { align-items: flex-start; flex-direction: column; font-size: .67rem; }.docs-hero { padding-top: 65px; }.architecture svg { min-width: 650px; } }
+
+
+/* Mobile-friendly landing page, documentation and legal pages. */
+.architecture-mobile { display: none; list-style: none; margin: 0; padding: 0; }
+.architecture-mobile li { padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.architecture-mobile li strong { display: block; margin-bottom: 5px; }
+.architecture-mobile li span { display: block; color: var(--ink-soft); line-height: 1.5; font-size: .92rem; }
+.architecture-diagram { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+
+@media (max-width: 800px) {
+  .landing-hero { min-height: 0; padding: 54px 20px 48px; gap: 18px; }
+  .hero-visual { min-height: 0; padding: 20px 0 12px; }
+  .sample-preview { transform: none; box-shadow: 8px 10px 0 var(--mint-strong), var(--shadow-soft); }
+  .landing-section, .limits-section { padding-left: 20px; padding-right: 20px; }
+  .solution-section, .preview-section { padding-left: 20px; padding-right: 20px; }
+  .limits-section { gap: 18px; }
+  .docs-hero { padding: 64px 20px 42px; }
+  .docs-layout { padding: 28px 20px 54px; gap: 26px; }
+  .docs-content section { scroll-margin-top: 82px; }
+  .docs-table { display: block; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+  .legal-page { padding: 64px 20px; }
+  .architecture { margin: 26px 0; }
+  .architecture-diagram { display: none; }
+  .architecture-mobile { display: grid; gap: 10px; }
+}
+
+@media (max-width: 520px) {
+  .nav-inner { min-height: 60px; padding: 0 16px; }
+  .nav-links { inset: 60px 0 0; padding: 18px 20px 28px; gap: 12px; overflow-y: auto; }
+  .nav-links > a, .nav-links > button { display: flex; align-items: center; width: 100%; min-height: 46px; padding: 10px 0; }
+  .nav-links > .nav-cta { justify-content: center; padding: 13px 16px; }
+  .hero-copy h1 { font-size: clamp(2.55rem, 12vw, 3.25rem); line-height: 1.02; }
+  .hero-sub { font-size: 1rem; line-height: 1.58; }
+  .hero-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .hero-actions .button { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 48px; text-align: center; }
+  .landing-section h2, .limits-section h2 { font-size: clamp(2.15rem, 9vw, 3.15rem); line-height: 1.05; }
+  .section-intro { font-size: 1rem; line-height: 1.6; }
+  .problem-grid, .verdict-grid, .steps, .feature-bento { gap: 12px; }
+  .problem-card h3, .steps h3, .feature-bento h3 { margin-top: 14px; }
+  .sample-top { align-items: flex-start; flex-wrap: wrap; }
+  .sample-aqi { padding: 24px 0; }
+  .sample-aqi strong { font-size: clamp(2.5rem, 13vw, 3rem); }
+  .sample-timeline > div { gap: 8px; }
+  .sample-timeline b { font-size: .82rem; }
+  .preview-frame { min-height: 0; }
+  .final-cta { padding: 62px 20px; }
+  .final-cta div { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .final-cta .button { width: 100%; }
+  .docs-hero h1, .legal-page h1 { font-size: clamp(2.5rem, 11vw, 3.5rem); line-height: 1.02; }
+  .docs-content h2, .legal-page h2 { font-size: clamp(1.65rem, 7.5vw, 2.15rem); line-height: 1.08; }
+  .docs-table { font-size: .82rem; }
+  .docs-table th, .docs-table td { padding: 11px 9px; }
+  .footer-grid { gap: 22px; }
+  .footer-bottom { gap: 14px; }
+  .footer-bottom span { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 360px) {
+  .landing-hero, .landing-section, .limits-section, .docs-hero, .docs-layout, .legal-page { padding-left: 16px; padding-right: 16px; }
+  .sample-preview { padding: 14px; border-radius: 16px; }
+  .sample-top { font-size: .58rem; }
+  .sample-aqi small { font-size: .58rem; }
+  .sample-timeline > div { flex-wrap: wrap; }
+}
