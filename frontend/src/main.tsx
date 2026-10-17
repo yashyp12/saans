@@ -8,8 +8,11 @@ import './styles/dashboard.css'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: 0,
+      staleTime: 15 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 })
