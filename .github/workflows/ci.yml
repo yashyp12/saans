@@ -12,9 +12,64 @@ permissions:
 
 concurrency:
   group: saans-ci-cd-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  changes:
+    name: Detect changed app areas
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend_api: ${{ steps.filter.outputs.backend_api }}
+      backend_ingest: ${{ steps.filter.outputs.backend_ingest }}
+    steps:
+      - name: Check out source history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed files
+        id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set_output() {
+            echo "$1=$2" >> "$GITHUB_OUTPUT"
+          }
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || \
+             [ -z "$BASE_SHA" ] || \
+             [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            set_output frontend true
+            set_output backend_api true
+            set_output backend_ingest true
+            exit 0
+          fi
+
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
+          echo "Changed files:"
+          cat changed-files.txt
+
+          if grep -Eq '^frontend/' changed-files.txt; then
+            set_output frontend true
+          else
+            set_output frontend false
+          fi
+
+          if grep -Eq '^(backend/src/api/|backend/src/core/|backend/src/data_access\.py$|backend/requirements\.txt$|backend/src/__init__\.py$|backend/src/[^/]+\.py$)' changed-files.txt; then
+            set_output backend_api true
+          else
+            set_output backend_api false
+          fi
+
+          if grep -Eq '^(backend/src/ingest/|backend/src/core/|backend/src/data_access\.py$|backend/requirements\.txt$|backend/src/__init__\.py$|backend/src/[^/]+\.py$)' changed-files.txt; then
+            set_output backend_ingest true
+          else
+            set_output backend_ingest false
+          fi
+
   backend-tests:
     name: Backend tests
     runs-on: ubuntu-latest
@@ -136,6 +191,7 @@ jobs:
   deploy:
     name: Deploy Saans to AWS
     needs:
+      - changes
       - backend-tests
       - frontend-build
       - sam-validation-build
@@ -145,10 +201,15 @@ jobs:
         github.ref == 'refs/heads/main' &&
         (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
         vars.AWS_DEPLOY_ROLE_ARN != '' &&
-        vars.AWS_FRONTEND_BUCKET != '' &&
-        vars.CLOUDFRONT_DISTRIBUTION_ID != '' &&
-        vars.AWS_API_FUNCTION_NAME != '' &&
-        vars.AWS_INGEST_FUNCTION_NAME != ''
+        (
+          (needs.changes.outputs.frontend == 'true' &&
+            vars.AWS_FRONTEND_BUCKET != '' &&
+            vars.CLOUDFRONT_DISTRIBUTION_ID != '') ||
+          (needs.changes.outputs.backend_api == 'true' &&
+            vars.AWS_API_FUNCTION_NAME != '') ||
+          (needs.changes.outputs.backend_ingest == 'true' &&
+            vars.AWS_INGEST_FUNCTION_NAME != '')
+        )
       }}
 
     runs-on: ubuntu-latest
@@ -168,12 +229,14 @@ jobs:
 
     steps:
       - name: Download frontend build
+        if: needs.changes.outputs.frontend == 'true'
         uses: actions/download-artifact@v8
         with:
           name: saans-frontend-dist
           path: frontend/dist/
 
       - name: Download Lambda packages
+        if: needs.changes.outputs.backend_api == 'true' || needs.changes.outputs.backend_ingest == 'true'
         uses: actions/download-artifact@v8
         with:
           name: saans-lambda-packages
@@ -191,6 +254,7 @@ jobs:
         run: aws sts get-caller-identity
 
       - name: Deploy API Lambda code
+        if: needs.changes.outputs.backend_api == 'true'
         run: |
           aws lambda update-function-code \
             --function-name "$AWS_API_FUNCTION_NAME" \
@@ -202,6 +266,7 @@ jobs:
             --region "$AWS_REGION"
 
       - name: Deploy ingestion Lambda code
+        if: needs.changes.outputs.backend_ingest == 'true'
         run: |
           aws lambda update-function-code \
             --function-name "$AWS_INGEST_FUNCTION_NAME" \
@@ -213,17 +278,19 @@ jobs:
             --region "$AWS_REGION"
 
       - name: Upload frontend to S3
+        if: needs.changes.outputs.frontend == 'true'
         run: |
           aws s3 sync frontend/dist/ \
             "s3://${AWS_FRONTEND_BUCKET}/" \
             --region "$AWS_REGION"
 
-      - name: Invalidate CloudFront cache
+      - name: Invalidate website entry points
+        if: needs.changes.outputs.frontend == 'true'
         id: invalidate
         run: |
           INVALIDATION_ID="$(aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-            --paths "/*" \
+            --paths "/" "/index.html" "/favicon.svg" \
             --query "Invalidation.Id" \
             --output text)"
 
@@ -231,6 +298,7 @@ jobs:
           echo "Created invalidation: ${INVALIDATION_ID}"
 
       - name: Wait for CloudFront invalidation
+        if: needs.changes.outputs.frontend == 'true'
         env:
           INVALIDATION_ID: ${{ steps.invalidate.outputs.id }}
         run: |
@@ -239,6 +307,7 @@ jobs:
             --id "$INVALIDATION_ID"
 
       - name: Smoke-test the website
+        if: needs.changes.outputs.frontend == 'true'
         run: |
           curl --fail --silent --show-error \
             "https://${AWS_FRONTEND_DOMAIN}/" --output /dev/null
@@ -246,7 +315,12 @@ jobs:
           curl --fail --silent --show-error \
             "https://${AWS_FRONTEND_DOMAIN}/favicon.svg" --output /dev/null
 
+          echo "Website and favicon returned successful HTTP responses."
+
+      - name: Smoke-test the API
+        if: needs.changes.outputs.backend_api == 'true'
+        run: |
           curl --fail --silent --show-error \
             "${API_BASE}/schools" --output /dev/null
 
-          echo "Frontend and API smoke tests passed."
+          echo "API returned a successful HTTP response."
