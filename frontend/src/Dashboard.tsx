@@ -110,6 +110,7 @@ function App() {
   const [simulationInput, setSimulationInput] = useState<SimulationRequest>({ scenario: 'normal' })
   const [notice, setNotice] = useState<string | null>(null)
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [refreshStatus, setRefreshStatus] = useState<'idle' | 'updated' | 'failed'>('idle')
   const queryClient = useQueryClient()
 
   const schoolsQuery = useQuery({
@@ -149,6 +150,12 @@ function App() {
     void queryClient.invalidateQueries({ queryKey: ['brief'] })
     void queryClient.invalidateQueries({ queryKey: ['forecast'] })
   }
+  const refreshLiveData = async () => {
+    setRefreshStatus('idle')
+    const results = await Promise.all([briefQuery.refetch(), forecastQuery.refetch()])
+    setRefreshStatus(results.some((result) => result.isError) ? 'failed' : 'updated')
+  }
+  const isRefreshing = briefQuery.isFetching || forecastQuery.isFetching
   const runSimulation = () => void simulationQuery.refetch()
   const copyNotice = async () => {
     try {
@@ -204,7 +211,7 @@ function App() {
           </div>
           <label className="school-picker">
             <span>Choose school</span>
-            <select value={selectedSchoolId} onChange={(event) => { setSelectedSchoolId(event.target.value); setNotice(null); void queryClient.removeQueries({ queryKey: ['simulate'] }) }}>
+            <select value={selectedSchoolId} onChange={(event) => { setSelectedSchoolId(event.target.value); setNotice(null); setRefreshStatus('idle'); void queryClient.removeQueries({ queryKey: ['simulate'] }) }}>
               {availableSchools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
             </select>
           </label>
@@ -220,9 +227,25 @@ function App() {
             <p className="eyebrow">Today’s plan · {currentSchool.city}</p>
             <h1 className="page-title">What should happen today?</h1>
           </div>
-          <div className="source-note">
-            <span className="source-pulse" />
-            {brief.simulated ? 'Scenario result' : isDemoMode ? `Sample data · ${formatDate(brief.generatedAt)}` : `Live data · Updated ${formatDate(brief.generatedAt)}`}
+          <div className="source-controls">
+            <div className="source-note">
+              <span className="source-pulse" />
+              {brief.simulated ? 'Scenario result' : isDemoMode ? `Sample data · ${formatDate(brief.generatedAt)}` : `Live data · Updated ${formatDate(brief.generatedAt)}`}
+            </div>
+            {hasLiveApi && !brief.simulated && (
+              <div className="refresh-controls">
+                <button
+                  type="button"
+                  className="button button-outline refresh-button"
+                  onClick={() => void refreshLiveData()}
+                  disabled={isRefreshing}
+                  aria-live="polite"
+                >
+                  {isRefreshing ? 'Checking air quality…' : refreshStatus === 'updated' ? 'Forecast updated' : 'Refresh forecast'}
+                </button>
+                {refreshStatus === 'failed' && <span className="refresh-feedback" role="status">Couldn’t refresh. Please try again.</span>}
+              </div>
+            )}
           </div>
         </section>
 
