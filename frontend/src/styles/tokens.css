@@ -158,3 +158,47 @@ h1 em { color: var(--go); font-style: normal; }
   .sample-aqi small { font-size: .58rem; }
   .sample-timeline > div { flex-wrap: wrap; }
 }
+
+
+/* Keep the mobile navigation in its own opaque viewport layer.
+   backdrop-filter on the sticky header otherwise traps fixed descendants
+   inside the header, allowing page content to show through the menu. */
+@media (max-width: 800px) {
+  .site-nav {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .site-nav .nav-links,
+  .site-nav .nav-links.nav-open {
+    position: fixed;
+    top: 65px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: calc(100vh - 65px);
+    height: calc(100dvh - 65px);
+    min-height: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background-color: #f5f3ec;
+    opacity: 1;
+    isolation: isolate;
+    z-index: 1000;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 520px) {
+  .site-nav .nav-links,
+  .site-nav .nav-links.nav-open {
+    top: 60px;
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+  }
+}
