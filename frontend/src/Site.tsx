@@ -38,7 +38,7 @@ export function SiteNav() {
   return <header className="site-nav">
     <div className="nav-inner">
       <Link to="/" aria-label="Saans home"><Logo /></Link>
-      <button className="menu-button" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(!open)}><span /> <span /> <span /><b>Menu</b></button>
+      <button className="menu-button" aria-label={open ? "Close navigation menu" : "Open navigation menu"} aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(!open)}><span /> <span /> <span /><b>{open ? "Close" : "Menu"}</b></button>
       <nav id="site-menu" className={`nav-links ${open ? 'nav-open' : ''}`} aria-label="Primary">
         <button type="button" className="nav-section-link" onClick={() => scrollTo('problem')}>Problem</button>
         <button type="button" className="nav-section-link" onClick={() => scrollTo('how')}>How it works</button>
