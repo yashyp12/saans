@@ -202,3 +202,63 @@ h1 em { color: var(--go); font-style: normal; }
     height: calc(100dvh - 60px);
   }
 }
+
+
+/* Render the mobile menu icon as a real vertical hamburger. */
+@media (max-width: 800px) {
+  .menu-button {
+    display: grid;
+    grid-template-columns: 22px auto;
+    grid-template-rows: repeat(3, 2px);
+    align-content: center;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 4px;
+    min-height: 44px;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: initial;
+  }
+
+  .menu-button > span {
+    grid-column: 1;
+    width: 22px;
+    height: 2px;
+    margin: 0;
+    transition: transform .16s ease, opacity .16s ease;
+  }
+
+  .menu-button > span:nth-of-type(1) { grid-row: 1; }
+  .menu-button > span:nth-of-type(2) { grid-row: 2; }
+  .menu-button > span:nth-of-type(3) { grid-row: 3; }
+
+  .menu-button > b {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    align-self: center;
+    margin-left: 0;
+    font: 700 .78rem/1 ui-monospace, monospace;
+  }
+
+  .menu-button[aria-expanded="true"] > span:nth-of-type(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .menu-button[aria-expanded="true"] > span:nth-of-type(2) {
+    opacity: 0;
+  }
+
+  .menu-button[aria-expanded="true"] > span:nth-of-type(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .site-nav .nav-links { display: none; }
+
+  .site-nav .nav-links.nav-open {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-button > span { transition: none; }
+}
