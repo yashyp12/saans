@@ -44,7 +44,7 @@ export function SiteNav() {
         <button type="button" className="nav-section-link" onClick={() => scrollTo('how')}>How it works</button>
         <button type="button" className="nav-section-link" onClick={() => scrollTo('features')}>Features</button>
         <NavLink to="/docs">Docs</NavLink>
-        <a href={repo} {...external}>GitHub</a><Link className="nav-cta" to="/app">Today's plan</Link>
+        <a href={repo} {...external}>GitHub</a><Link className="nav-login" to="/login">Principal login</Link><Link className="nav-cta" to="/app">Today's plan</Link>
       </nav>
     </div>
   </header>
