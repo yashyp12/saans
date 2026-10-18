@@ -241,7 +241,7 @@ function App() {
                   disabled={isRefreshing}
                   aria-live="polite"
                 >
-                  {isRefreshing ? 'Checking air quality…' : refreshStatus === 'updated' ? 'Forecast updated' : 'Refresh forecast'}
+                  {isRefreshing ? 'Reloading saved data…' : refreshStatus === 'updated' ? 'Saved data reloaded' : 'Reload saved data'}
                 </button>
                 {refreshStatus === 'failed' && <span className="refresh-feedback" role="status">Couldn’t refresh. Please try again.</span>}
               </div>
