@@ -5,6 +5,7 @@ import App from './App'
 import './index.css'
 import './styles/dashboard.css'
 import './styles/polish.css'
+import './styles/nature-refresh.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
