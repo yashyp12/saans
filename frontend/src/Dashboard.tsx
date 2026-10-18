@@ -247,7 +247,7 @@ function App() {
                 >
                   {isRefreshing ? 'Reloading saved data…' : refreshStatus === 'updated' ? 'Saved data reloaded' : 'Reload saved data'}
                 </button>
-                {refreshStatus === 'failed' && <span className="refresh-feedback" role="status">Couldn’t refresh. Please try again.</span>}
+                {refreshStatus === 'failed' && <span className="refresh-feedback" role="status">Couldn’t reload saved data. Showing the last available plan.</span>}
               </div>
             )}
           </div>
