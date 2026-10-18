@@ -1,0 +1,397 @@
+/* Nature-inspired principal sign-in preview. This is a design only, not authentication. */
+.login-page {
+  min-height: min(820px, calc(100vh - 76px));
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+  background: var(--paper);
+}
+
+.login-story {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  padding: clamp(28px, 5vw, 72px);
+  overflow: hidden;
+  color: #fffdf8;
+  background:
+    radial-gradient(ellipse at 8% 15%, rgba(169, 215, 186, .20), transparent 34%),
+    radial-gradient(ellipse at 90% 92%, rgba(169, 215, 186, .14), transparent 30%),
+    linear-gradient(145deg, #204d3d 0%, #12372b 58%, #0d2d25 100%);
+}
+
+.login-story::after {
+  position: absolute;
+  right: -115px;
+  bottom: 12%;
+  width: 330px;
+  height: 460px;
+  border: 1px solid rgba(220, 238, 225, .18);
+  border-radius: 52% 48% 48% 52%;
+  content: "";
+  transform: rotate(34deg);
+  pointer-events: none;
+}
+
+.login-back-link {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  color: #e0f0e5;
+  font-size: .9rem;
+  text-decoration: none;
+}
+
+.login-back-link:hover { text-decoration: underline; }
+
+.login-story-content {
+  position: relative;
+  z-index: 1;
+  max-width: 580px;
+  margin: 72px 0;
+}
+
+.login-leaf {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 34px;
+  place-items: center;
+  border: 1px solid rgba(220, 238, 225, .32);
+  border-radius: 18px;
+  background: rgba(220, 238, 225, .1);
+}
+
+.login-leaf svg {
+  width: 35px;
+  height: 35px;
+  fill: var(--mint-strong);
+  stroke: #e4f3e9;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.login-story .eyebrow { color: var(--mint-strong); }
+
+.login-story h1 {
+  max-width: 560px;
+  margin: 18px 0;
+  font-size: clamp(3rem, 5.2vw, 5.25rem);
+  line-height: .99;
+  letter-spacing: -.06em;
+}
+
+.login-story h1 em {
+  color: #c3e4cb;
+  font-style: normal;
+}
+
+.login-story-copy {
+  max-width: 470px;
+  color: #e0eee4;
+  font-size: 1.06rem;
+  line-height: 1.75;
+}
+
+.login-trust-points {
+  display: grid;
+  gap: 13px;
+  margin-top: 32px;
+}
+
+.login-trust-points p {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #f1f7f1;
+  font-size: .92rem;
+}
+
+.login-trust-points span {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  color: #12372b;
+  background: #c3e4cb;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.login-story-foot {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+  margin: 0;
+  color: #c6dbce;
+  font-size: .75rem;
+  line-height: 1.6;
+}
+
+.login-panel {
+  display: grid;
+  min-width: 0;
+  padding: clamp(28px, 5vw, 72px);
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(220, 238, 225, .65), transparent 32%),
+    var(--paper);
+}
+
+.login-panel-inner {
+  width: min(100%, 420px);
+}
+
+.login-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 36px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .68);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.login-preview-badge > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d7a044;
+  box-shadow: 0 0 0 3px rgba(215, 160, 68, .15);
+}
+
+.login-panel h2 {
+  margin: 12px 0 10px;
+  font-size: clamp(2.5rem, 4vw, 3.3rem);
+  line-height: 1;
+}
+
+.login-intro {
+  margin: 0 0 28px;
+  color: var(--ink-soft);
+  font-size: .95rem;
+  line-height: 1.7;
+}
+
+.login-form {
+  display: grid;
+  gap: 10px;
+}
+
+.login-form label {
+  margin-top: 7px;
+  color: var(--ink);
+  font-size: .83rem;
+  font-weight: 700;
+}
+
+.login-form input {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 14px;
+  border: 1px solid #cbd7cc;
+  border-radius: 12px;
+  outline: none;
+  color: var(--ink);
+  background: #fff;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.login-form input::placeholder { color: #819087; }
+
+.login-form input:focus {
+  border-color: var(--go);
+  box-shadow: 0 0 0 4px rgba(46, 125, 88, .13);
+}
+
+.login-submit {
+  display: flex;
+  width: 100%;
+  min-height: 50px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 13px;
+  padding: 13px 18px;
+  cursor: pointer;
+}
+
+.login-submit span { font-size: 1.2rem; }
+
+.login-preview-message {
+  margin: 16px 0 0;
+  padding: 13px 14px;
+  border: 1px solid #e7d5a9;
+  border-radius: 12px;
+  color: #694d12;
+  background: #fff8e8;
+  font-size: .83rem;
+  line-height: 1.55;
+}
+
+.login-no-account {
+  margin: 26px 0;
+  color: var(--ink-soft);
+  font-size: .86rem;
+  text-align: center;
+}
+
+.login-no-account a {
+  color: var(--go);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.login-security-note {
+  display: flex;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(220, 238, 225, .38);
+}
+
+.login-security-note > span {
+  flex: 0 0 auto;
+  color: var(--go);
+  font-size: 1.25rem;
+}
+
+.login-security-note p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .77rem;
+  line-height: 1.6;
+}
+
+.login-security-note strong { color: var(--ink); }
+
+@media (max-width: 900px) {
+  .login-page { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .login-story, .login-panel { padding: 32px; }
+  .login-story h1 { font-size: clamp(2.7rem, 6vw, 4rem); }
+}
+
+@media (max-width: 700px) {
+  .login-page { grid-template-columns: minmax(0, 1fr); }
+  .login-story { min-height: 430px; padding: 28px 24px; }
+  .login-story-content { margin: 52px 0; }
+  .login-story h1 { max-width: 500px; font-size: clamp(3rem, 12vw, 4.5rem); }
+  .login-story-foot { max-width: 360px; }
+  .login-panel { padding: 38px 24px 48px; }
+  .login-preview-badge { margin-bottom: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-form input { transition: none; }
+}
+
+
+/* Keep the principal login link visible without competing with the primary CTA. */
+.nav-login {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.nav-login:hover,
+.nav-login:focus-visible {
+  color: var(--go);
+}
+
+@media (max-width: 800px) {
+  .site-nav .nav-links.nav-open .nav-login {
+    min-height: 48px;
+    padding: 12px 0;
+  }
+}
+
+
+/* A visible, dismissible maintenance notice shown on every visit to the login route. */
+.maintenance-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  background: rgba(8, 28, 21, .68);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+
+.maintenance-dialog {
+  width: min(100%, 460px);
+  padding: clamp(26px, 5vw, 40px);
+  border: 1px solid rgba(23, 61, 50, .12);
+  border-radius: 24px;
+  color: var(--ink);
+  background: #fffdf8;
+  box-shadow: 0 28px 90px rgba(4, 22, 15, .3);
+  text-align: center;
+  animation: maintenance-arrive 180ms ease-out both;
+}
+
+.maintenance-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border-radius: 50%;
+  color: #1d5d41;
+  background: #e3f1e5;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.maintenance-dialog .eyebrow {
+  margin: 0;
+  color: #2b7955;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.maintenance-dialog h2 {
+  margin: 12px 0;
+  font-size: clamp(1.8rem, 5vw, 2.25rem);
+  line-height: 1.12;
+  letter-spacing: -.04em;
+}
+
+.maintenance-dialog > p:not(.eyebrow) {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .96rem;
+  line-height: 1.7;
+}
+
+.maintenance-dismiss {
+  min-height: 48px;
+  margin-top: 26px;
+  padding: 12px 24px;
+  cursor: pointer;
+}
+
+@keyframes maintenance-arrive {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maintenance-dialog { animation: none; }
+}
