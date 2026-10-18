@@ -1,0 +1,149 @@
+/* Visual polish and interaction states shared by the landing page and dashboard. */
+:root {
+  --focus-ring: #1d6b4b;
+  --surface-raised: rgba(255, 253, 248, 0.94);
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+:where(button, input, textarea, select) {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  color: var(--forest-deep);
+  background: var(--mint-strong);
+}
+
+.button,
+.nav-cta,
+.refresh-button,
+.scenario,
+.faq-item button,
+.toc-link {
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.button:active,
+.nav-cta:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.button:focus-visible,
+.nav-cta:focus-visible,
+.refresh-button:focus-visible,
+.scenario:focus-visible {
+  box-shadow: 0 0 0 4px rgba(46, 125, 88, 0.18);
+}
+
+.button:disabled,
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.card-surface,
+.problem-card,
+.verdict-tile,
+.feature-bento article,
+.content-section,
+.metric-panel,
+.workspace-card,
+.state-card {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .problem-card:hover {
+    border-color: var(--go);
+  }
+
+  .verdict-tile:hover,
+  .feature-bento article:hover,
+  .content-section:hover,
+  .metric-panel:hover,
+  .workspace-card:hover {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .scenario:hover:not(:disabled) {
+    border-color: var(--go);
+  }
+}
+
+.site-nav {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.menu-button {
+  min-height: 44px;
+  min-width: 44px;
+  cursor: pointer;
+}
+
+.chart-wrap,
+.chart-figure,
+.timeline-main,
+.notice-editor {
+  min-width: 0;
+}
+
+.notice-editor {
+  line-height: 1.65;
+}
+
+@media (max-width: 760px) {
+  .hero-actions .button {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .site-nav {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .nav-cta,
+  .refresh-button,
+  .scenario,
+  .faq-item button,
+  .toc-link,
+  .card-surface,
+  .problem-card,
+  .verdict-tile,
+  .feature-bento article,
+  .content-section,
+  .metric-panel,
+  .workspace-card,
+  .state-card {
+    transition: none !important;
+  }
+}
