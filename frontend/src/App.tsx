@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Dashboard from './Dashboard'
+import Login from './Login'
 import {
   Disclaimer,
   Docs,
@@ -43,6 +44,7 @@ function App() {
         <Route path="/how" element={<LandingRoute />} />
         <Route path="/features" element={<LandingRoute />} />
         <Route path="/app" element={<DashboardPage />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/docs" element={<Docs />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
