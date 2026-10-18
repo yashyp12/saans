@@ -4,6 +4,7 @@ import { SiteFooter, SiteNav } from './Site'
 
 function Login() {
   const [message, setMessage] = useState('')
+  const [showMaintenanceNotice, setShowMaintenanceNotice] = useState(true)
 
   const handlePreviewSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -13,6 +14,33 @@ function Login() {
   return (
     <>
       <SiteNav />
+      {showMaintenanceNotice && (
+        <div className="maintenance-backdrop">
+          <section
+            className="maintenance-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="maintenance-title"
+            aria-describedby="maintenance-description"
+          >
+            <span className="maintenance-icon" aria-hidden="true">i</span>
+            <p className="eyebrow">Saans service notice</p>
+            <h2 id="maintenance-title">System under maintenance</h2>
+            <p id="maintenance-description">
+              Our system is currently under maintenance. Thank you for your patience.
+              Please check back soon.
+            </p>
+            <button
+              className="button button-dark maintenance-dismiss"
+              type="button"
+              onClick={() => setShowMaintenanceNotice(false)}
+              autoFocus
+            >
+              Continue
+            </button>
+          </section>
+        </div>
+      )}
       <main className="login-page" id="main-content">
         <section className="login-story" aria-labelledby="login-story-title">
           <Link to="/" className="login-back-link">← Back to Saans</Link>
