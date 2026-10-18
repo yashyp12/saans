@@ -293,3 +293,27 @@
 @media (prefers-reduced-motion: reduce) {
   .login-form input { transition: none; }
 }
+
+
+/* Keep the principal login link visible without competing with the primary CTA. */
+.nav-login {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.nav-login:hover,
+.nav-login:focus-visible {
+  color: var(--go);
+}
+
+@media (max-width: 800px) {
+  .site-nav .nav-links.nav-open .nav-login {
+    min-height: 48px;
+    padding: 12px 0;
+  }
+}
