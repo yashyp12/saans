@@ -234,7 +234,7 @@ function App() {
           <div className="source-controls">
             <div className="source-note">
               <span className="source-pulse" />
-              {brief.simulated ? 'Scenario result' : isDemoMode ? `Sample data · ${formatDate(brief.generatedAt)}` : `Live data · Updated ${formatDate(brief.generatedAt)}`}
+              {brief.simulated ? 'Scenario result' : isDemoMode ? `Sample data · ${formatDate(brief.generatedAt)}` : `Live data · Plan generated ${formatDate(brief.generatedAt)}`}
             </div>
             {hasLiveApi && !brief.simulated && (
               <div className="refresh-controls">
