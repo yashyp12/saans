@@ -169,7 +169,11 @@ function App() {
 
   if (schoolsQuery.isLoading || briefQuery.isLoading || forecastQuery.isLoading) return <LoadingState />
 
-  if (schoolsQuery.isError || briefQuery.isError || forecastQuery.isError) {
+  if (
+    (schoolsQuery.isError && schoolsQuery.data === undefined) ||
+    (briefQuery.isError && briefQuery.data === undefined) ||
+    (forecastQuery.isError && forecastQuery.data === undefined)
+  ) {
     const error = schoolsQuery.error?.message ?? briefQuery.error?.message ?? forecastQuery.error?.message ?? 'The live data service did not respond. Please try again.'
     return (
       <div className="page-shell centered-state">
