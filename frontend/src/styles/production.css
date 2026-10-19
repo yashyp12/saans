@@ -1313,3 +1313,14 @@ h1, h2, h3 {
     transition: none !important;
   }
 }
+
+
+/* Match the drawer offset to the 64px mobile header after the UI refresh. */
+@media (max-width: 800px) {
+  .site-nav .nav-links,
+  .site-nav .nav-links.nav-open {
+    top: 64px;
+    height: calc(100vh - 64px);
+    height: calc(100dvh - 64px);
+  }
+}
