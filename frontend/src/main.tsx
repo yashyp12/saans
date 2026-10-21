@@ -7,7 +7,6 @@ import './styles/dashboard.css'
 import './styles/polish.css'
 import './styles/nature-refresh.css'
 import './styles/login.css'
-import './styles/production.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
