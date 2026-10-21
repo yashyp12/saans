@@ -223,6 +223,11 @@ function App() {
       </header>
 
       <main className="page-shell">
+        <div className="print-only print-meta">
+          <strong>{currentSchool.name} · {currentSchool.city}</strong>
+          <span>Plan prepared {formatDate(brief.generatedAt)}</span>
+          <span>Forecast estimates can differ from conditions at the school. Follow local guidance.</span>
+        </div>
         {isDemoMode && <div className="mode-banner"><span className="mode-dot" /> Sample view <span>This is sample data, not live air-quality information.</span></div>}
         {stale && <div className="freshness-banner"><span>!</span> This plan is more than three hours old. Refresh it before making a final decision.</div>}
 
@@ -236,6 +241,14 @@ function App() {
               <span className="source-pulse" />
               {brief.simulated ? 'Scenario result' : isDemoMode ? `Sample data · ${formatDate(brief.generatedAt)}` : `Live data · Plan generated ${formatDate(brief.generatedAt)}`}
             </div>
+            <button
+              type="button"
+              className="button button-outline print-plan-button"
+              onClick={() => window.print()}
+              aria-label={`Print or save the daily plan for ${currentSchool.name}`}
+            >
+              Print plan <span aria-hidden="true">↗</span>
+            </button>
             {hasLiveApi && !brief.simulated && (
               <div className="refresh-controls">
                 <button
@@ -245,9 +258,9 @@ function App() {
                   disabled={isRefreshing}
                   aria-live="polite"
                 >
-                  {isRefreshing ? 'Reloading saved data…' : refreshStatus === 'updated' ? 'Saved data reloaded' : 'Reload saved data'}
+                  {isRefreshing ? 'Refreshing forecast…' : refreshStatus === 'updated' ? 'Forecast updated' : 'Refresh forecast'}
                 </button>
-                {refreshStatus === 'failed' && <span className="refresh-feedback" role="status">Couldn’t reload saved data. Showing the last available plan.</span>}
+                {refreshStatus === 'failed' && <span className="refresh-feedback" role="status">Couldn’t refresh. Showing the last available plan.</span>}
               </div>
             )}
           </div>
