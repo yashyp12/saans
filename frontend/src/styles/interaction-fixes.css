@@ -1,0 +1,45 @@
+/* Targeted interaction fixes requested for the current production issue. */
+.nav-cta:hover,
+.nav-cta:focus-visible,
+.nav-cta:active,
+.button-dark:hover,
+.button-dark:focus-visible,
+.button-dark:active,
+.landing-hero .button-dark:hover,
+.landing-hero .button-dark:focus-visible,
+.landing-hero .button-dark:active {
+  background: #fff !important;
+  color: #174637 !important;
+  border-color: #174637 !important;
+  box-shadow: none;
+}
+
+.dashboard-brand-link {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dashboard-brand-link:focus-visible {
+  outline: 2px solid #174637;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.site-footer-rich {
+  padding: 0 24px;
+  border-top: 1px solid var(--border, #d9dfd6);
+  background: var(--bg, #f5f4ee);
+}
+
+.site-footer-rich .footer-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 20px 0;
+  border-top: 0;
+  text-align: center;
+}
