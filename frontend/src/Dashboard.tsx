@@ -1,4 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { api, apiConfigurationError, hasLiveApi, isDemoMode, type SimulationRequest } from './api'
@@ -80,13 +81,20 @@ const simulateDemoBrief = (brief: BriefResponse, input: SimulationRequest): Brie
 
 function Logo() {
   return (
-    <div className="brand-mark" aria-label="Saans logo">
-      <svg viewBox="0 0 44 44" aria-hidden="true">
-        <path d="M22 4C12 9 8 16 8 24c0 8 6 15 14 16 8-1 14-8 14-16 0-8-4-15-14-20Z" />
-        <path d="M22 12c-4 5-5 10-4 16 1 4 2 7 4 10M22 23c3-3 6-5 10-6M21 28c-3-2-6-3-9-3" />
-      </svg>
-      <span>saans</span>
-    </div>
+    <Link
+      to="/"
+      aria-label="Saans home"
+      className="dashboard-brand-link"
+      onClick={() => window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 120)}
+    >
+      <div className="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <path d="M22 4C12 9 8 16 8 24c0 8 6 15 14 16 8-1 14-8 14-16 0-8-4-15-14-20Z" />
+          <path d="M22 12c-4 5-5 10-4 16 1 4 2 7 4 10M22 23c3-3 6-5 10-6M21 28c-3-2-6-3-9-3" />
+        </svg>
+        <span>saans</span>
+      </div>
+    </Link>
   )
 }
 
