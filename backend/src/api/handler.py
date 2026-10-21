@@ -7,6 +7,9 @@ import math
 import os
 from datetime import datetime, timezone
 from typing import Any, Mapping, Sequence
+from urllib.error import URLError
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 from backend.src.core.engine import decide
 from backend.src.core.policy import tier_for_aqi
@@ -84,6 +87,75 @@ def list_schools(store: DataStore | None = None) -> list[dict[str, Any]]:
         raise ApiError("DATA_UNAVAILABLE", str(exc), 503) from exc
 
 
+def _fetch_live_forecast(school: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Recover a missing saved forecast from Open-Meteo without changing AWS resources."""
+    try:
+        latitude = float(school["lat"])
+        longitude = float(school["lon"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503) from exc
+
+    if not math.isfinite(latitude) or not math.isfinite(longitude):
+        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
+
+    query = urlencode(
+        {
+            "latitude": latitude,
+            "longitude": longitude,
+            "hourly": "us_aqi",
+            "forecast_days": 2,
+            "timezone": "auto",
+        }
+    )
+    url = f"https://air-quality-api.open-meteo.com/v1/air-quality?{query}"
+    try:
+        with urlopen(url, timeout=12) as response:
+            payload = json.load(response)
+    except (OSError, URLError, ValueError, json.JSONDecodeError) as exc:
+        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503) from exc
+
+    hourly = payload.get("hourly") if isinstance(payload, Mapping) else None
+    times = hourly.get("time") if isinstance(hourly, Mapping) else None
+    values = hourly.get("us_aqi") if isinstance(hourly, Mapping) else None
+    if (
+        not isinstance(times, Sequence)
+        or isinstance(times, (str, bytes))
+        or not isinstance(values, Sequence)
+        or isinstance(values, (str, bytes))
+        or len(times) != len(values)
+    ):
+        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
+
+    forecast = []
+    for timestamp, raw_aqi in zip(times, values):
+        if not isinstance(timestamp, str) or raw_aqi is None:
+            continue
+        try:
+            aqi = float(raw_aqi)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(aqi) and aqi >= 0:
+            forecast.append({"time": timestamp, "us_aqi": aqi})
+
+    if not forecast:
+        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
+    return forecast
+
+
+def _forecast_or_live(
+    school: Mapping[str, Any], readings: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """Prefer saved readings; fetch live data only when storage has no usable forecast."""
+    if readings:
+        try:
+            saved_forecast = forecast_from_readings(readings)
+        except DataUnavailableError:
+            saved_forecast = []
+        if saved_forecast:
+            return saved_forecast
+    return _fetch_live_forecast(school)
+
+
 def _load_inputs(
     school_id: str, store: DataStore
 ) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
@@ -99,14 +171,7 @@ def _load_inputs(
         )
     if timetable is None:
         raise ApiError("DATA_UNAVAILABLE", "School timetable is unavailable", 503)
-    if not readings:
-        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
-    try:
-        forecast = forecast_from_readings(readings)
-    except DataUnavailableError as exc:
-        raise ApiError("DATA_UNAVAILABLE", str(exc), 503) from exc
-    if not forecast:
-        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
+    forecast = _forecast_or_live(school, readings)
     return school, timetable, forecast
 
 
@@ -131,12 +196,7 @@ def _load_school_forecast(
         raise ApiError(
             "SCHOOL_NOT_FOUND", f"No school found for id '{school_id}'", 404
         )
-    if not readings:
-        raise ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
-    try:
-        forecast = forecast_from_readings(readings)
-    except DataUnavailableError as exc:
-        raise ApiError("DATA_UNAVAILABLE", str(exc), 503) from exc
+    forecast = _forecast_or_live(school, readings)
     return school, forecast
 
 
