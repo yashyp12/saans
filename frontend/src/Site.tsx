@@ -37,7 +37,19 @@ export function SiteNav() {
   }
   return <header className="site-nav">
     <div className="nav-inner">
-      <Link to="/" aria-label="Saans home"><Logo /></Link>
+      <Link
+        to="/"
+        aria-label="Saans home"
+        onClick={(event) => {
+          setOpen(false)
+          if (location.pathname === '/') {
+            event.preventDefault()
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          } else {
+            window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 120)
+          }
+        }}
+      ><Logo /></Link>
       <button className="menu-button" aria-label={open ? "Close navigation menu" : "Open navigation menu"} aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(!open)}><span /> <span /> <span /><b>{open ? "Close" : "Menu"}</b></button>
       <nav id="site-menu" className={`nav-links ${open ? 'nav-open' : ''}`} aria-label="Primary">
         <button type="button" className="nav-section-link" onClick={() => scrollTo('problem')}>Problem</button>
@@ -51,17 +63,13 @@ export function SiteNav() {
 }
 
 export function SiteFooter() {
-  const demoVideo = import.meta.env.VITE_DEMO_VIDEO_URL
-  const blog = import.meta.env.VITE_BLOG_URL
-  return <footer className="site-footer-rich">
-    <div className="footer-grid">
-      <div><Link to="/"><Logo /></Link><p>Saans helps school leaders turn air-quality forecasts into calm, practical activity decisions.</p><span className="footer-chip">Built for Environmental Hacks 2026</span></div>
-      <div><h3>Product</h3><Link to="/app">Today's plan</Link><Link to="/">Problem</Link><Link to="/">How it works</Link><Link to="/">Features</Link></div>
-      <div><h3>Resources</h3><Link to="/docs">Documentation</Link><Link to="/docs#architecture">Architecture</Link><Link to="/docs#api">API reference</Link><a href={repo} {...external}>GitHub repository</a><a href={issueUrl} {...external}>Report an issue</a>{demoVideo && <a href={demoVideo} {...external}>Demo video</a>}{blog && <a href={blog} {...external}>Blog post</a>}</div>
-      <div><h3>Legal</h3><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/disclaimer">Disclaimer</Link><a href={`${repo}/blob/main/LICENSE`} {...external}>MIT licence</a></div>
-    </div>
-    <div className="footer-bottom"><span>© 2026 Saans. Open-source under the MIT License.</span><span>Forecast data provided by Open-Meteo. Thresholds are example school-policy settings, not medical advice.</span><button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top ↑</button></div>
-  </footer>
+  return (
+    <footer className="site-footer-rich">
+      <div className="footer-bottom">
+        <span>All rights reserved by Team Saans 2026.</span>
+      </div>
+    </footer>
+  )
 }
 
 function Reveal({ children, className = '', id }: { children: React.ReactNode; className?: string; id?: string }) {

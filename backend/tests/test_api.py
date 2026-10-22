@@ -160,13 +160,52 @@ def test_missing_school_returns_error_envelope():
     }
 
 
-def test_missing_forecast_returns_data_unavailable():
+def test_missing_saved_forecast_uses_live_fallback_for_brief_and_forecast(monkeypatch):
     store = fixture_store()
     store.items = {
         key: value
         for key, value in store.items.items()
         if not key[1].startswith("AQ#")
     }
+    live_readings = [
+        {"time": f"2026-10-{21 + hour // 24:02d}T{hour % 24:02d}:00", "us_aqi": 90}
+        for hour in range(48)
+    ]
+    calls = []
+
+    def fake_live_forecast(school):
+        calls.append(school["PK"])
+        return live_readings
+
+    monkeypatch.setattr(api_handler, "_fetch_live_forecast", fake_live_forecast)
+    brief = api_handler.handler(
+        {"httpMethod": "GET", "path": "/schools/delhi/brief"},
+        store=store,
+    )
+    forecast = api_handler.handler(
+        {"httpMethod": "GET", "path": "/schools/delhi/forecast"},
+        store=store,
+    )
+
+    assert brief["statusCode"] == 200
+    assert json.loads(brief["body"])["headline"]["maxAqi"] == 90
+    assert forecast["statusCode"] == 200
+    assert len(json.loads(forecast["body"])) == 48
+    assert calls == ["SCHOOL#delhi", "SCHOOL#delhi"]
+
+
+def test_missing_forecast_returns_data_unavailable_when_live_source_fails(monkeypatch):
+    store = fixture_store()
+    store.items = {
+        key: value
+        for key, value in store.items.items()
+        if not key[1].startswith("AQ#")
+    }
+
+    def unavailable(_school):
+        raise api_handler.ApiError("DATA_UNAVAILABLE", "School forecast is unavailable", 503)
+
+    monkeypatch.setattr(api_handler, "_fetch_live_forecast", unavailable)
     response = api_handler.handler(
         {"httpMethod": "GET", "path": "/schools/delhi/brief"},
         store=store,
