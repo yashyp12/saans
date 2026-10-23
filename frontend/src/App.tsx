@@ -29,7 +29,16 @@ function LandingRoute() {
   useEffect(() => {
     const section = location.pathname.slice(1)
     if (!section) return
-    window.setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' }), 0)
+
+    const timeoutId = window.setTimeout(() => {
+      const target = document.getElementById(section)
+      if (!target) return
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' })
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
   }, [location.pathname])
 
   return <Landing />
