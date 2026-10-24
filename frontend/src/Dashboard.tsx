@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { api, apiConfigurationError, hasLiveApi, isDemoMode, type SimulationRequest } from './api'
 import { briefBySchool, forecastBySchool, schools } from './data/mockData'
 import type { BriefResponse, Tier } from './types'
+import { getScrollBehavior } from './hooks'
 
 type Scenario = 'normal' | 'stubble' | 'severe'
 
@@ -85,7 +86,7 @@ function Logo() {
       to="/"
       aria-label="Saans home"
       className="dashboard-brand-link"
-      onClick={() => window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 120)}
+      onClick={() => window.setTimeout(() => window.scrollTo({ top: 0, behavior: getScrollBehavior() }), 120)}
     >
       <div className="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 44 44" aria-hidden="true">
@@ -273,7 +274,7 @@ function App() {
             <p className="decision-explanation">The air-quality score could reach <strong>{brief.headline.maxAqi}</strong> during outdoor activities. Saans checks the school’s rules and suggests what to do for each activity.</p>
             <div className="decision-footer">
               <span className="policy-note">A guide for school decisions · not medical advice</span>
-              <button type="button" className="link-button" onClick={() => document.getElementById('activity-timeline')?.scrollIntoView({ behavior: 'smooth' })}>See why <span>↓</span></button>
+              <button type="button" className="link-button" onClick={() => document.getElementById('activity-timeline')?.scrollIntoView({ behavior: getScrollBehavior() })}>See why <span>↓</span></button>
             </div>
           </article>
 
