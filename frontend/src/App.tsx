@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { getScrollBehavior } from './hooks'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import Login from './Login'
@@ -34,8 +35,7 @@ function LandingRoute() {
       const target = document.getElementById(section)
       if (!target) return
 
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' })
+      target.scrollIntoView({ behavior: getScrollBehavior() })
     }, 0)
 
     return () => window.clearTimeout(timeoutId)
