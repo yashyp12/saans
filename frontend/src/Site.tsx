@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { claims } from './content/claims'
-import { useReveal } from './hooks'
+import { getScrollBehavior, useReveal } from './hooks'
 
 const repo = 'https://github.com/yashyp12/saans'
 const issueUrl = `${repo}/issues`
@@ -29,10 +29,10 @@ export function SiteNav() {
   const scrollTo = (id: string) => {
     setOpen(false)
     if (location.pathname === '/' || location.pathname === '') {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+      document.getElementById(id)?.scrollIntoView({ behavior: getScrollBehavior() })
     } else {
       navigate('/')
-      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 120)
+      window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: getScrollBehavior() }), 120)
     }
   }
   return <header className="site-nav">
@@ -44,9 +44,9 @@ export function SiteNav() {
           setOpen(false)
           if (location.pathname === '/') {
             event.preventDefault()
-            window.scrollTo({ top: 0, behavior: 'smooth' })
+            window.scrollTo({ top: 0, behavior: getScrollBehavior() })
           } else {
-            window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 120)
+            window.setTimeout(() => window.scrollTo({ top: 0, behavior: getScrollBehavior() }), 120)
           }
         }}
       ><Logo /></Link>
@@ -117,7 +117,7 @@ function Architecture() {
 export function Landing() {
   const [faq, setFaq] = useState<number | null>(null)
   return <><SiteNav /><main id="main-content">
-    <section className="landing-hero"><div className="hero-copy"><p className="eyebrow">Air-quality decisions for schools</p><h1>Know what to do on bad-air days. <em>Before the bell.</em></h1><p className="hero-sub">Saans checks the air-quality forecast and the school day, then suggests what to do with each outdoor activity: continue, make it shorter, move it to a safer time, or keep it indoors. It can also draft a message for families and staff to review.</p><div className="hero-actions"><Link className="button button-dark" to="/app">See today’s plan →</Link><button type="button" className="button button-ghost" onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })}>See how it works ↓</button></div><p className="trust-line">Free air-quality forecasts · Runs in the cloud · Open source</p></div><div className="hero-visual"><SamplePreview /><span className="hero-orbit orbit-one" /><span className="hero-orbit orbit-two" /></div></section>
+    <section className="landing-hero"><div className="hero-copy"><p className="eyebrow">Air-quality decisions for schools</p><h1>Know what to do on bad-air days. <em>Before the bell.</em></h1><p className="hero-sub">Saans checks the air-quality forecast and the school day, then suggests what to do with each outdoor activity: continue, make it shorter, move it to a safer time, or keep it indoors. It can also draft a message for families and staff to review.</p><div className="hero-actions"><Link className="button button-dark" to="/app">See today’s plan →</Link><button type="button" className="button button-ghost" onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: getScrollBehavior() })}>See how it works ↓</button></div><p className="trust-line">Free air-quality forecasts · Runs in the cloud · Open source</p></div><div className="hero-visual"><SamplePreview /><span className="hero-orbit orbit-one" /><span className="hero-orbit orbit-two" /></div></section>
     <Reveal id="problem" className="landing-section" ><p className="eyebrow">The problem</p><h2>A score alone doesn’t tell a school what to do.</h2><p className="section-intro">On a day with poor air, school leaders need to decide quickly whether assembly, sports and breaks should happen outside. A weather app gives a score, but not a clear next step.</p><div className="problem-grid">{[['01', 'A score alone does not explain what to do.', 'Should older students go outside when younger children need extra care? Many apps leave that choice to the school.'], ['02', 'Younger children may need extra care.', 'Schools may set stricter outdoor rules for younger grades.'], ['03', 'Air quality can change during the day.', 'Saans checks the forecast against the times activities are planned.'], ['04', 'Families and staff need a clear message.', 'A plan helps most when families and staff can understand it easily.']].map(([number, title, text]) => <article className="problem-card" key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div></Reveal>
     <Reveal className="landing-section solution-section"><p className="eyebrow">The answer</p><h2>A clear next step for every activity.</h2><div className="verdict-grid">{verdicts.map(([name, label, text, example]) => <article className={`verdict-tile tile-${name.toLowerCase()}`} key={name}><span className="tile-icon">{name === 'GO' ? '✓' : name === 'MODIFY' ? '~' : name === 'MOVE' ? '→' : '×'}</span><strong>{label}</strong><p>{text}</p><small>{example}</small></article>)}</div></Reveal>
     <Reveal id="how" className="landing-section how-section"><p className="eyebrow">How it works</p><h2>From air forecast to school plan in four steps.</h2><div className="steps">{[['01', 'Read the forecast', 'We get a two-day air-quality forecast for the school’s area.'], ['02', 'Check the timetable', 'We check the forecast during each planned outdoor activity.'], ['03', 'Decide', 'Each activity gets a clear next step: continue, shorten, move to a safer time, or stay indoors.'], ['04', 'Tell people', 'A reviewable notice template can be prepared from the decision.']].map(([number, title, text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div><p className="claim-line">{claims.changeDetection ? 'Alerts fire only when a decision changes, so staff are not flooded with repeats.' : 'Every suggestion shows why it was made, so a school leader can review it.'}</p></Reveal>
@@ -149,10 +149,10 @@ export function Docs() {
   useEffect(() => {
     if (location.hash) {
       const el = document.getElementById(location.hash.replace('#', ''))
-      if (el) window.setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 80)
+      if (el) window.setTimeout(() => el.scrollIntoView({ behavior: getScrollBehavior() }), 80)
     }
   }, [location.hash])
-  const scrollDoc = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  const scrollDoc = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: getScrollBehavior() })
   return <><SiteNav /><main className="docs-page"><div className="docs-hero"><p className="eyebrow">Saans documentation</p><h1>How Saans makes a school plan.</h1><p>A simple guide to the recommendations, where the air-quality numbers come from, and how the website works.</p></div><div className="docs-layout"><aside className="docs-toc"><span>On this page</span>{docsSections.map(([id, title]) => <button key={id} type="button" className="toc-link" onClick={() => scrollDoc(id)}>{title}</button>)}</aside><article className="docs-content">{docsSections.map(([id, title, content]) => <section id={id} key={id}><h2><button type="button" className="heading-anchor" onClick={() => scrollDoc(id)} aria-label={`Link to ${title}`}>#</button>{title}</h2>{content}</section>)}</article></div></main><SiteFooter /></>
 }
 
