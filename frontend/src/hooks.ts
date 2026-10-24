@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 
+export function getScrollBehavior(): ScrollBehavior {
+  return typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? 'auto'
+    : 'smooth'
+}
+
 export function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false)
   useEffect(() => {

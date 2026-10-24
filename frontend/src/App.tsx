@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { getScrollBehavior } from './hooks'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import Login from './Login'
@@ -29,7 +30,15 @@ function LandingRoute() {
   useEffect(() => {
     const section = location.pathname.slice(1)
     if (!section) return
-    window.setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' }), 0)
+
+    const timeoutId = window.setTimeout(() => {
+      const target = document.getElementById(section)
+      if (!target) return
+
+      target.scrollIntoView({ behavior: getScrollBehavior() })
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
   }, [location.pathname])
 
   return <Landing />
