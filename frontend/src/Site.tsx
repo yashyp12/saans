@@ -65,8 +65,29 @@ export function SiteNav() {
 export function SiteFooter() {
   return (
     <footer className="site-footer-rich">
+      <div className="footer-main">
+        <div className="footer-brand">
+          <Link to="/" aria-label="Saans home"><Logo /></Link>
+          <p>Clearer air-quality decisions for safer school days.</p>
+          <span className="footer-principle">Forecast-led guidance. School policy. Human judgement.</span>
+        </div>
+        <nav className="footer-links" aria-label="Product links">
+          <h2>Explore</h2>
+          <Link to="/app">Today’s plan</Link>
+          <Link to="/docs">How Saans works</Link>
+          <Link to="/#features">Features</Link>
+        </nav>
+        <nav className="footer-links" aria-label="Information links">
+          <h2>Information</h2>
+          <Link to="/disclaimer">Safety disclaimer</Link>
+          <Link to="/docs#data">Data sources</Link>
+          <a href={repo} {...external}>Source code <span aria-hidden="true">↗</span></a>
+          <a href={issueUrl} {...external}>Report an issue <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
       <div className="footer-bottom">
-        <span>All rights reserved by Team Saans 2026.</span>
+        <span>© {new Date().getFullYear()} Team Saans. Built to help schools make informed decisions.</span>
+        <span className="footer-disclaimer">Saans provides forecast-based guidance, not medical advice.</span>
       </div>
     </footer>
   )
