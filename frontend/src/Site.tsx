@@ -11,7 +11,7 @@ function Logo() {
   return <span className="site-logo"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M22 4C12 9 8 16 8 24c0 8 6 15 14 16 8-1 14-8 14-16 0-8-4-15-14-20Z" /><path d="M22 12c-4 5-5 10-4 16 1 4 2 7 4 10M22 23c3-3 6-5 10-6M21 28c-3-2-6-3-9-3" /></svg><span>saans</span></span>
 }
 
-export function HomeLogoLink({ children, className }: { children: React.ReactNode; className?: string }) {
+export function HomeLogoLink({ children, className, onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -21,6 +21,7 @@ export function HomeLogoLink({ children, className }: { children: React.ReactNod
     aria-label="Saans home"
     onClick={(event) => {
       event.preventDefault()
+      onClick?.()
       if (location.pathname === '/') {
         window.scrollTo({ top: 0, behavior: getScrollBehavior() })
       } else {
@@ -57,7 +58,7 @@ export function SiteNav() {
   }
   return <header className="site-nav">
     <div className="nav-inner">
-      <HomeLogoLink><Logo /></HomeLogoLink>
+      <HomeLogoLink onClick={() => setOpen(false)}><Logo /></HomeLogoLink>
       <button className="menu-button" aria-label={open ? "Close navigation menu" : "Open navigation menu"} aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(!open)}><span /> <span /> <span /><b>{open ? "Close" : "Menu"}</b></button>
       <nav id="site-menu" className={`nav-links ${open ? 'nav-open' : ''}`} aria-label="Primary">
         <button type="button" className="nav-section-link" onClick={() => scrollTo('problem')}>Problem</button>
