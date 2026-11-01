@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { claims } from './content/claims'
 import { getScrollBehavior, useReveal } from './hooks'
@@ -14,13 +14,6 @@ function Logo() {
 export function HomeLogoLink({ children, className }: { children: React.ReactNode; className?: string }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const scrollAfterNavigation = useRef(false)
-
-  useEffect(() => {
-    if (!scrollAfterNavigation.current) return
-    scrollAfterNavigation.current = false
-    window.scrollTo({ top: 0, behavior: getScrollBehavior() })
-  }, [location.pathname])
 
   return <Link
     to="/"
@@ -31,8 +24,8 @@ export function HomeLogoLink({ children, className }: { children: React.ReactNod
       if (location.pathname === '/') {
         window.scrollTo({ top: 0, behavior: getScrollBehavior() })
       } else {
-        scrollAfterNavigation.current = true
         navigate('/')
+        window.setTimeout(() => window.scrollTo({ top: 0, behavior: getScrollBehavior() }), 120)
       }
     }}
   >{children}</Link>
