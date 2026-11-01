@@ -6,6 +6,7 @@ import { api, apiConfigurationError, hasLiveApi, isDemoMode, type SimulationRequ
 import { briefBySchool, forecastBySchool, schools } from './data/mockData'
 import type { BriefResponse, Tier } from './types'
 import { getScrollBehavior } from './hooks'
+import { HomeLogoLink } from './Site'
 
 type Scenario = 'normal' | 'stubble' | 'severe'
 
@@ -82,12 +83,7 @@ const simulateDemoBrief = (brief: BriefResponse, input: SimulationRequest): Brie
 
 function Logo() {
   return (
-    <Link
-      to="/"
-      aria-label="Saans home"
-      className="dashboard-brand-link"
-      onClick={() => window.setTimeout(() => window.scrollTo({ top: 0, behavior: getScrollBehavior() }), 120)}
-    >
+    <HomeLogoLink className="dashboard-brand-link">
       <div className="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 44 44" aria-hidden="true">
           <path d="M22 4C12 9 8 16 8 24c0 8 6 15 14 16 8-1 14-8 14-16 0-8-4-15-14-20Z" />
@@ -95,10 +91,9 @@ function Logo() {
         </svg>
         <span>saans</span>
       </div>
-    </Link>
+    </HomeLogoLink>
   )
 }
-
 function LoadingState() {
   return (
     <div className="page-shell">
